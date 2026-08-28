@@ -108,21 +108,11 @@ Route::get('/migrate-db', function () {
         $tables = \Illuminate\Support\Facades\DB::select(
             "SELECT tablename FROM pg_tables WHERE schemaname = 'public'"
         );
-        \Illuminate\Support\Facades\DB::statement('SET session_replication_role = replica');
         foreach ($tables as $table) {
             \Illuminate\Support\Facades\DB::statement('DROP TABLE IF EXISTS "' . $table->tablename . '" CASCADE');
         }
-        \Illuminate\Support\Facades\DB::statement('SET session_replication_role = DEFAULT');
 
-        // Also drop any leftover types (enums etc)
-        $types = \Illuminate\Support\Facades\DB::select(
-            "SELECT typname FROM pg_type WHERE typnamespace = 'public'::regnamespace AND typtype = 'e'"
-        );
-        foreach ($types as $type) {
-            \Illuminate\Support\Facades\DB::statement('DROP TYPE IF EXISTS "' . $type->typname . '" CASCADE');
-        }
-
-        // Now run fresh migrations and seeders
+        // Now run migrations and seeders
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--seed' => true, '--force' => true]);
         return 'Database migrated successfully! ' . \Illuminate\Support\Facades\Artisan::output();
     } catch (\Throwable $e) {
