@@ -104,7 +104,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
 Route::get('/migrate-db', function () {
     try {
-        \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--seed' => true, '--force' => true]);
+        // PostgreSQL: drop and recreate public schema (clean slate)
+        \Illuminate\Support\Facades\DB::statement('DROP SCHEMA public CASCADE');
+        \Illuminate\Support\Facades\DB::statement('CREATE SCHEMA public');
+
+        // Now run migrations and seeders
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--seed' => true, '--force' => true]);
         return 'Database migrated successfully! ' . \Illuminate\Support\Facades\Artisan::output();
     } catch (\Throwable $e) {
         return 'Error: ' . $e->getMessage() . ' | File: ' . $e->getFile() . ':' . $e->getLine();
