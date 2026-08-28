@@ -102,20 +102,17 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     ]);
 });
 
-Route::get('/migrate-db', function () {
-    try {
-        // Drop all tables individually (preserves schema permissions on Neon)
-        $tables = \Illuminate\Support\Facades\DB::select(
-            "SELECT tablename FROM pg_tables WHERE schemaname = 'public'"
-        );
-        foreach ($tables as $table) {
-            \Illuminate\Support\Facades\DB::statement('DROP TABLE IF EXISTS "' . $table->tablename . '" CASCADE');
-        }
 
-        // Now run migrations and seeders
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--seed' => true, '--force' => true]);
-        return 'Database migrated successfully! ' . \Illuminate\Support\Facades\Artisan::output();
-    } catch (\Throwable $e) {
-        return 'Error: ' . $e->getMessage() . ' | File: ' . $e->getFile() . ':' . $e->getLine();
+
+Route::post('/import-transfer', function (\Illuminate\Http\Request $request) {
+    $tables = $request->json()->all();
+    foreach ($tables as $tableName => $rows) {
+        \Illuminate\Support\Facades\DB::table($tableName)->delete();
+        if (!empty($rows)) {
+            foreach (array_chunk($rows, 100) as $chunk) {
+                \Illuminate\Support\Facades\DB::table($tableName)->insert($chunk);
+            }
+        }
     }
+    return 'Success';
 });
