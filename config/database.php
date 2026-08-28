@@ -65,7 +65,7 @@ return [
 
         'pgsql' => [
             'driver' => 'pgsql',
-            'url' => env('DATABASE_URL', env('POSTGRES_URL')),
+            'url' => env('DATABASE_URL_UNPOOLED', env('POSTGRES_URL_NON_POOLING', env('DATABASE_URL'))),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '5432'),
             'database' => env('DB_DATABASE', 'forge'),
