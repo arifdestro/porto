@@ -17,6 +17,24 @@ $app = new Illuminate\Foundation\Application(
 
 /*
 |--------------------------------------------------------------------------
+| Vercel Serverless Compatibility
+|--------------------------------------------------------------------------
+| Vercel's filesystem is read-only except /tmp.
+| Redirect writable paths there when running on Vercel.
+*/
+if (isset($_ENV['VERCEL']) || getenv('VERCEL')) {
+    $app->useStoragePath('/tmp/storage');
+
+    // Ensure bootstrap/cache equivalent exists in /tmp
+    $bootstrapCache = '/tmp/bootstrap-cache';
+    if (!is_dir($bootstrapCache)) {
+        mkdir($bootstrapCache, 0755, true);
+    }
+    $app->instance('path.bootstrap.cache', $bootstrapCache);
+}
+
+/*
+|--------------------------------------------------------------------------
 | Bind Important Interfaces
 |--------------------------------------------------------------------------
 |

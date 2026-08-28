@@ -33,6 +33,7 @@
         }
     ],
     "env": {
+        "VERCEL": "1",
         "APP_NAME": "Porto",
         "APP_ENV": "production",
         "APP_DEBUG": "true",
