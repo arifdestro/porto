@@ -102,7 +102,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     ]);
 });
 
-Route::get('/migrate-db', function () {
+Route::get('/migrate-db', function () { try {
     \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--seed' => true, '--force' => true]);
-    return 'Database migrated successfully';
+    return 'Database migrated successfully'; } catch (\Exception $e) { return $e->getMessage(); }
 });
