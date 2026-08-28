@@ -33,10 +33,15 @@
         }
     ],
     "env": {
-        "APP_ENV": "local",
+        "APP_NAME": "Porto",
+        "APP_ENV": "production",
         "APP_DEBUG": "true",
+        "APP_KEY": "base64:J3Yo5bMKlZBpnfWy91Aok6/4laaZfOmrov6ENrVFS+Q=",
+        "APP_URL": "https://ftrporto.vercel.app",
+        "DB_CONNECTION": "pgsql",
         "CACHE_DRIVER": "array",
         "SESSION_DRIVER": "cookie",
-        "LOG_CHANNEL": "stderr"
+        "LOG_CHANNEL": "stderr",
+        "VIEW_COMPILED_PATH": "/tmp/views"
     }
 }

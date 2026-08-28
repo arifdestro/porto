@@ -102,7 +102,11 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     ]);
 });
 
-Route::get('/migrate-db', function () { try {
-    \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--seed' => true, '--force' => true]);
-    return 'Database migrated successfully'; } catch (\Throwable $e) { return $e->getMessage(); }
+Route::get('/migrate-db', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--seed' => true, '--force' => true]);
+        return 'Database migrated successfully! ' . \Illuminate\Support\Facades\Artisan::output();
+    } catch (\Throwable $e) {
+        return 'Error: ' . $e->getMessage() . ' | File: ' . $e->getFile() . ':' . $e->getLine();
+    }
 });
