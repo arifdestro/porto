@@ -101,3 +101,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         'social-links' => 'socialLink',
     ]);
 });
+
+Route::get('/migrate-db', function () {
+    \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--seed' => true, '--force' => true]);
+    return 'Database migrated successfully';
+});
