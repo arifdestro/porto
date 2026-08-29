@@ -52,7 +52,7 @@ class BlogController extends Controller
                 function ($matches) use (&$toc, &$usedIds) {
                     $tag = $matches[1]; // h2 or h3
                     $attrs = $matches[2]; // existing attributes
-                    $text = strip_tags($matches[3]); // plain text content
+                    $text = html_entity_decode(strip_tags($matches[3]), ENT_QUOTES | ENT_HTML5, 'UTF-8'); // plain text content
                     $level = ($tag === 'h2') ? 2 : 3;
                     
                     // Check if id already exists in attributes
