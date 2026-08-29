@@ -36,10 +36,10 @@ class PostController extends Controller
         $data['is_published'] = $request->has('is_published');
 
         if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/posts'), $filename);
-            $data['image'] = 'uploads/posts/' . $filename;
+            $data['image'] = \App\Helpers\ImageHelper::processAndSave(
+                $request->file('image'),
+                'uploads/posts'
+            );
         }
 
         Post::create($data);
@@ -68,14 +68,14 @@ class PostController extends Controller
 
         if ($request->hasFile('image')) {
             // Delete old image
-            if ($post->image && File::exists(public_path($post->image))) {
-                File::delete(public_path($post->image));
+            if ($post->image) {
+                \App\Helpers\ImageHelper::delete($post->image);
             }
 
-            $file = $request->file('image');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/posts'), $filename);
-            $data['image'] = 'uploads/posts/' . $filename;
+            $data['image'] = \App\Helpers\ImageHelper::processAndSave(
+                $request->file('image'),
+                'uploads/posts'
+            );
         }
 
         $post->update($data);
@@ -85,8 +85,8 @@ class PostController extends Controller
 
     public function destroy(Post $post)
     {
-        if ($post->image && File::exists(public_path($post->image))) {
-            File::delete(public_path($post->image));
+        if ($post->image) {
+            \App\Helpers\ImageHelper::delete($post->image);
         }
         
         $post->delete();
@@ -97,12 +97,16 @@ class PostController extends Controller
     public function uploadImage(Request $request)
     {
         if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/posts/content'), $filename);
+            $url = \App\Helpers\ImageHelper::processAndSave(
+                $request->file('file'),
+                'uploads/posts/content'
+            );
             
+            // If the URL doesn't start with http (local dev), wrap it with asset()
+            $finalUrl = str_starts_with($url, 'http') ? $url : asset($url);
+
             return response()->json([
-                'url' => asset('uploads/posts/content/' . $filename)
+                'url' => $finalUrl
             ]);
         }
         return response()->json(['error' => 'No file uploaded'], 400);
