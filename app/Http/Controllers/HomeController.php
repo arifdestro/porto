@@ -82,7 +82,7 @@ class HomeController extends Controller
             Mail::to($recipientEmail)->send(new ContactMessage($validated));
             return back()->with('success', 'Your message has been sent successfully! I will get back to you soon.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Sorry, there was an error sending your message. Please try again later.');
+            return back()->with('error', 'Error: ' . $e->getMessage());
         }
     }
 }
