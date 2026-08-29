@@ -104,15 +104,4 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
 
 
-Route::post('/import-transfer', function (\Illuminate\Http\Request $request) {
-    $tables = $request->json()->all();
-    foreach ($tables as $tableName => $rows) {
-        \Illuminate\Support\Facades\DB::table($tableName)->delete();
-        if (!empty($rows)) {
-            foreach (array_chunk($rows, 100) as $chunk) {
-                \Illuminate\Support\Facades\DB::table($tableName)->insert($chunk);
-            }
-        }
-    }
-    return 'Success';
-});
+
