@@ -26,9 +26,15 @@ class BlogController extends Controller
 
         $posts = $query->latest()->paginate(9);
         
-        // Handle AJAX request for Load More
+        // Handle AJAX requests
         if ($request->ajax()) {
-            return view('blog.partials.post_grid', compact('posts'))->render();
+            if ($request->has('page')) {
+                // Load More pagination
+                return view('blog.partials.post_grid', compact('posts'))->render();
+            } else {
+                // Category filter or Search (replaces entire main content)
+                return view('blog.partials.main_content', compact('posts'))->render();
+            }
         }
 
         $categories = \App\Models\Post::where('is_published', true)

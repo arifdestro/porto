@@ -312,9 +312,7 @@
                 <form action="{{ route('blog.index') }}" method="GET" class="search-glass mx-auto mx-md-0" style="max-width: 500px;" id="searchForm">
                     <i class="bi bi-search text-secondary ms-2"></i>
                     <input type="text" name="search" placeholder="Cari artikel, tutorial, tips..." value="{{ request('search') }}" autocomplete="off" id="searchInput">
-                    @if(request('search') || request('category'))
-                        <a href="{{ route('blog.index') }}" class="btn btn-sm btn-link text-secondary text-decoration-none"><i class="bi bi-x-circle"></i> Clear</a>
-                    @endif
+                    <a href="{{ route('blog.index') }}" id="clearSearchBtn" class="btn btn-sm btn-link text-secondary text-decoration-none" style="{{ (request('search') || request('category')) ? '' : 'display:none;' }}"><i class="bi bi-x-circle"></i> Clear</a>
                 </form>
                 
                 <div class="mt-4 d-flex justify-content-center justify-content-md-start flex-wrap gap-3">
@@ -334,70 +332,9 @@
 
 <main class="py-5">
     <div class="container">
-        @if($posts->count() > 0)
-            @php 
-                $featured = $posts->first(); 
-                $remainingPosts = $posts->slice(1);
-            @endphp
-            
-            <!-- Featured Post -->
-            <div class="row mb-5 fade-in">
-                <div class="col-12">
-                    <div class="featured-post-card glass-card hover-glow d-flex flex-column flex-lg-row">
-                        <div class="col-lg-7 p-0">
-                            <a href="{{ route('blog.show', $featured->slug) }}" class="d-block h-100">
-                                <div class="post-img-wrapper h-100" style="min-height: 300px;">
-                                    <span class="post-category bg-primary-gradient text-white">{{ $featured->category ?? 'Terbaru' }}</span>
-                                    @if($featured->image)
-                                        <img src="{{ asset($featured->image) }}" alt="{{ $featured->title }}">
-                                    @else
-                                        <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
-                                            <i class="bi bi-code-slash text-secondary" style="font-size: 5rem;"></i>
-                                        </div>
-                                    @endif
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-lg-5 p-4 p-lg-5 d-flex flex-column justify-content-center">
-                            <h2 class="post-title featured-title">
-                                <a href="{{ route('blog.show', $featured->slug) }}">{{ $featured->title }}</a>
-                            </h2>
-                            <p class="post-excerpt" style="font-size: 1.1rem;">{{ $featured->excerpt ?? Str::limit(strip_tags($featured->content), 150) }}</p>
-                            <div class="post-meta mt-auto">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="author-avatar"><i class="bi bi-person-fill"></i></div>
-                                    <span class="fw-medium text-body">Admin</span>
-                                </div>
-                                <span class="ms-auto"><i class="bi bi-calendar3 me-1"></i> {{ $featured->created_at->format('d M Y') }}</span>
-                                <span><i class="bi bi-eye me-1"></i> {{ $featured->views }}</span>
-                            </div>
-                            <div class="mt-2">
-                                <a href="{{ route('blog.show', $featured->slug) }}#disqus_thread" class="text-secondary text-decoration-none" style="font-size: 0.85rem;"><i class="bi bi-chat-dots me-1"></i>0 Comments</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Grid Posts -->
-            <div id="post-grid" class="row g-4">
-                @include('blog.partials.post_grid', ['posts' => $remainingPosts])
-            </div>
-
-            @if($posts->hasMorePages())
-            <div class="d-flex justify-content-center mt-5" id="loadMoreContainer">
-                <button class="load-more-btn" id="loadMoreBtn" data-next-page="{{ $posts->currentPage() + 1 }}">
-                    <i class="bi bi-arrow-clockwise me-2" id="loadMoreIcon"></i>Load More Articles
-                </button>
-            </div>
-            @endif
-        @else
-            <div class="text-center py-5 my-5">
-                <i class="bi bi-journal-code text-muted mb-3" style="font-size: 5rem;"></i>
-                <h3 class="text-secondary fw-bold">Belum Ada Artikel</h3>
-                <p class="text-muted">Nantikan artikel dan tutorial menarik seputar teknologi di sini.</p>
-            </div>
-        @endif
+        <div id="blog-main-content">
+            @include('blog.partials.main_content')
+        </div>
     </div>
 </main>
 
@@ -438,16 +375,18 @@
             });
         }
 
-        // AJAX Load More Logic
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
-        if (loadMoreBtn) {
-            loadMoreBtn.addEventListener('click', function() {
-                let nextPage = this.getAttribute('data-next-page');
+        // AJAX Load More Logic (Delegated to document)
+        document.addEventListener('click', function(e) {
+            let loadMoreBtn = e.target.closest('#loadMoreBtn');
+            if (loadMoreBtn) {
+                let nextPage = loadMoreBtn.getAttribute('data-next-page');
                 let icon = document.getElementById('loadMoreIcon');
                 
                 // Add loading animation
-                icon.classList.add('bi-arrow-clockwise', 'text-white');
-                icon.style.animation = 'spin 1s linear infinite';
+                if (icon) {
+                    icon.classList.add('bi-arrow-clockwise', 'text-white');
+                    icon.style.animation = 'spin 1s linear infinite';
+                }
                 loadMoreBtn.disabled = true;
 
                 // Build URL with current search/category params
@@ -463,23 +402,120 @@
                 .then(html => {
                     if (html.trim() !== '') {
                         document.getElementById('post-grid').insertAdjacentHTML('beforeend', html);
-                        this.setAttribute('data-next-page', parseInt(nextPage) + 1);
+                        loadMoreBtn.setAttribute('data-next-page', parseInt(nextPage) + 1);
                         
                         // Stop loading animation
-                        icon.style.animation = 'none';
+                        if (icon) icon.style.animation = 'none';
                         loadMoreBtn.disabled = false;
                     } else {
                         // No more posts
-                        document.getElementById('loadMoreContainer').remove();
+                        let container = document.getElementById('loadMoreContainer');
+                        if (container) container.remove();
                     }
                 })
                 .catch(error => {
                     console.error('Error fetching posts:', error);
-                    icon.style.animation = 'none';
+                    if (icon) icon.style.animation = 'none';
                     loadMoreBtn.disabled = false;
                 });
+            }
+        });
+
+        // Live Filtering Logic
+        let currentCategory = new URLSearchParams(window.location.search).get('category') || '';
+        let currentSearch = new URLSearchParams(window.location.search).get('search') || '';
+
+        function fetchPosts(category, search) {
+            let url = new URL(window.location.href);
+            if (category) url.searchParams.set('category', category);
+            else url.searchParams.delete('category');
+            
+            if (search) url.searchParams.set('search', search);
+            else url.searchParams.delete('search');
+            
+            url.searchParams.delete('page'); // Reset to page 1
+
+            // Update URL bar without reload
+            window.history.pushState({}, '', url);
+
+            // Show loading indicator
+            document.getElementById('blog-main-content').innerHTML = '<div class="text-center py-5 my-5"><div class="spinner-border text-primary" role="status"></div><h5 class="mt-3 text-secondary">Loading...</h5></div>';
+
+            fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('blog-main-content').innerHTML = html;
+                updateCategoryButtons(category);
+                
+                // Show/hide clear button
+                const clearBtn = document.getElementById('clearSearchBtn');
+                if (clearBtn) {
+                    clearBtn.style.display = (category || search) ? '' : 'none';
+                }
             });
         }
+
+        // Category click interception
+        document.addEventListener('click', function(e) {
+            let catLink = e.target.closest('a.cat-pill');
+            if (catLink) {
+                e.preventDefault();
+                let url = new URL(catLink.href);
+                currentCategory = url.searchParams.get('category') || '';
+                fetchPosts(currentCategory, currentSearch);
+            }
+        });
+
+        // Update active states on buttons
+        function updateCategoryButtons(activeCat) {
+            document.querySelectorAll('a.cat-pill').forEach(btn => {
+                let btnUrl = new URL(btn.href);
+                let btnCat = btnUrl.searchParams.get('category') || '';
+                
+                if (btnCat === activeCat) {
+                    btn.className = 'btn cat-pill btn-primary shadow rounded-pill px-4 py-2';
+                } else {
+                    btn.className = 'btn cat-pill btn-outline-secondary rounded-pill px-4 py-2';
+                }
+            });
+        }
+
+        // Search form submit
+        const searchForm = document.getElementById('searchForm');
+        if (searchForm) {
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                currentSearch = document.getElementById('searchInput').value;
+                fetchPosts(currentCategory, currentSearch);
+            });
+        }
+
+        // Live search (debounce)
+        let searchTimeout;
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    currentSearch = this.value;
+                    fetchPosts(currentCategory, currentSearch);
+                }, 500);
+            });
+        }
+
+        // Clear button logic
+        document.addEventListener('click', function(e) {
+            let clearBtn = e.target.closest('#clearSearchBtn');
+            if (clearBtn) {
+                e.preventDefault();
+                if (searchInput) searchInput.value = '';
+                currentSearch = '';
+                currentCategory = '';
+                fetchPosts('', '');
+            }
+        });
     });
 </script>
 <style>
