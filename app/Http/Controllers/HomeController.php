@@ -53,20 +53,20 @@ class HomeController extends Controller
             'email' => 'required|email|max:255',
             'subject' => 'required|string|max:255',
             'message' => 'required|string',
-            'g-recaptcha-response' => 'required'
+            'cf-turnstile-response' => 'required'
         ], [
-            'g-recaptcha-response.required' => 'Silakan centang kotak "Saya bukan robot".'
+            'cf-turnstile-response.required' => 'Silakan centang kotak "Verify you are human".'
         ]);
 
-        // Verify reCAPTCHA
-        $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-            'secret' => env('RECAPTCHA_SECRET_KEY'),
-            'response' => $request->input('g-recaptcha-response'),
+        // Verify Turnstile
+        $response = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+            'secret' => env('TURNSTILE_SECRET_KEY'),
+            'response' => $request->input('cf-turnstile-response'),
             'remoteip' => $request->ip()
         ]);
 
         if (!$response->json('success')) {
-            return back()->withInput()->with('error', 'Validasi reCAPTCHA gagal. Silakan coba lagi.');
+            return back()->withInput()->with('error', 'Validasi Turnstile gagal. Silakan coba lagi.');
         }
 
         // Anti-Injection / XSS Protection

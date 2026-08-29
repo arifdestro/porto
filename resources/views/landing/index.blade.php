@@ -443,8 +443,8 @@
                                 @error('message') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-12 mt-4">
-                                <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
-                                @error('g-recaptcha-response') <div class="text-danger mt-1 small">{{ $message }}</div> @enderror
+                                <div class="cf-turnstile" data-sitekey="{{ env('TURNSTILE_SITE_KEY') }}"></div>
+                                @error('cf-turnstile-response') <div class="text-danger mt-1 small">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-12 mt-4">
                                 <button type="submit" class="btn btn-primary-custom w-100 py-3 d-flex align-items-center justify-content-center gap-2">
@@ -787,8 +787,9 @@
     }
 </script>
 @endpush
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
 @push('scripts')
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // ── Portfolio Modal ──
