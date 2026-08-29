@@ -114,13 +114,28 @@
                 
                 <!-- Author Box -->
                 <div class="author-glass mt-5 p-4 rounded-4 fade-in">
+                    @php
+                        $heroTitle = \App\Models\SiteSetting::get('hero_title', '');
+                        $authorName = preg_replace('/^(Halo|Hello|Hi),\s*I\'?a?m\s+/i', '', $heroTitle);
+                        if (empty($authorName)) {
+                            $admin = \App\Models\User::first();
+                            $authorName = $admin ? $admin->name : 'Admin Porto';
+                        }
+                        
+                        $authorRole = \App\Models\SiteSetting::get('hero_subtitle', 'Web Developer');
+                        $authorImage = \App\Models\SiteSetting::get('hero_image');
+                    @endphp
                     <div class="d-flex flex-column flex-sm-row gap-4 align-items-center align-items-sm-start">
-                        <div class="author-avatar-large">
-                            <i class="bi bi-person-fill"></i>
+                        <div class="author-avatar-large" style="{{ $authorImage ? 'background: transparent;' : '' }}">
+                            @if($authorImage)
+                                <img src="{{ str_starts_with($authorImage, 'http') ? $authorImage : asset($authorImage) }}" alt="{{ $authorName }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                            @else
+                                <i class="bi bi-person-fill"></i>
+                            @endif
                         </div>
                         <div class="text-center text-sm-start">
-                            <h5 class="fw-bold mb-1">Admin Porto</h5>
-                            <p class="text-secondary mb-2" style="font-size: 0.95rem;">Full Stack Developer & UI/UX Enthusiast.</p>
+                            <h5 class="fw-bold mb-1">{{ $authorName }}</h5>
+                            <p class="text-secondary mb-2" style="font-size: 0.95rem;">{{ $authorRole }}</p>
                             <p class="text-muted mb-0" style="font-size: 0.9rem;">Menulis seputar pemrograman web, tutorial Laravel, dan pengalaman di dunia IT. Temukan saya di sosial media untuk diskusi lebih lanjut.</p>
                         </div>
                     </div>
