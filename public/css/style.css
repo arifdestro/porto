@@ -1633,6 +1633,56 @@ html[data-theme="dark"] .exp-title { color: #F1F5F9; }
     background: none;
 }
 
+/* ===== Admin Pagination ===== */
+.admin-card-body .pagination {
+    margin-bottom: 0;
+    gap: 4px;
+}
+
+.admin-card-body .page-link {
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    background: var(--white);
+    transition: var(--transition);
+}
+
+.admin-card-body .page-link:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+
+.admin-card-body .page-item.active .page-link {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+}
+
+.admin-card-body .page-item.disabled .page-link {
+    background: var(--light-bg);
+    color: var(--text-lighter);
+    border-color: var(--border);
+}
+
+html[data-theme="dark"] .admin-card-body .page-link {
+    background: #1E293B;
+    border-color: rgba(255,255,255,0.1);
+    color: #94a3b8;
+}
+
+html[data-theme="dark"] .admin-card-body .page-link:hover {
+    background: var(--primary);
+    color: #fff;
+}
+
+html[data-theme="dark"] .admin-card-body .page-item.disabled .page-link {
+    background: #0f172a;
+    color: #475569;
+}
+
 /* ===== Stat Cards ===== */
 .stat-card {
     background: var(--white);

@@ -79,8 +79,13 @@
         </div>
     </div>
     @if($visitors->hasPages())
-        <div class="card-footer bg-transparent border-0 pt-3 pb-3 pe-4">
-            {{ $visitors->links() }}
+        <div class="admin-card-body border-top d-flex flex-column flex-sm-row align-items-center justify-content-between gap-2">
+            <small class="text-muted">
+                Showing {{ $visitors->firstItem() }} - {{ $visitors->lastItem() }} of {{ $visitors->total() }} visitors
+            </small>
+            <div>
+                {{ $visitors->links('pagination::bootstrap-5') }}
+            </div>
         </div>
     @endif
 </div>
