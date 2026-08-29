@@ -102,6 +102,18 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     ]);
 });
 
-
-
-
+// Temporary route for data transfer (remove after use)
+Route::post('/import-transfer', function (\Illuminate\Http\Request $request) {
+    $tables = $request->json()->all();
+    $results = [];
+    foreach ($tables as $tableName => $rows) {
+        \Illuminate\Support\Facades\DB::table($tableName)->delete();
+        if (!empty($rows)) {
+            foreach (array_chunk($rows, 100) as $chunk) {
+                \Illuminate\Support\Facades\DB::table($tableName)->insert($chunk);
+            }
+        }
+        $results[$tableName] = count($rows);
+    }
+    return response()->json(['status' => 'Success', 'imported' => $results]);
+})->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
