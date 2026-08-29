@@ -31,7 +31,13 @@ class BlogController extends Controller
             return view('blog.partials.post_grid', compact('posts'))->render();
         }
 
-        return view('blog.index', compact('posts'));
+        $categories = \App\Models\Post::where('is_published', true)
+            ->whereNotNull('category')
+            ->where('category', '!=', '')
+            ->distinct()
+            ->pluck('category');
+
+        return view('blog.index', compact('posts', 'categories'));
     }
 
     public function show($slug)

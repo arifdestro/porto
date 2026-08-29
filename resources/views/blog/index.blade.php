@@ -321,12 +321,11 @@
                     <a href="{{ route('blog.index') }}" class="btn cat-pill {{ !request('category') ? 'btn-primary shadow' : 'btn-outline-secondary' }} rounded-pill px-4 py-2">
                         <i class="bi bi-grid-fill"></i> Semua
                     </a>
-                    <a href="{{ route('blog.index', ['category' => 'Tutorial']) }}" class="btn cat-pill {{ request('category') == 'Tutorial' ? 'btn-primary shadow' : 'btn-outline-secondary' }} rounded-pill px-4 py-2">
-                        <i class="bi bi-laptop"></i> Tutorial
+                    @foreach($categories as $cat)
+                    <a href="{{ route('blog.index', ['category' => $cat]) }}" class="btn cat-pill {{ request('category') == $cat ? 'btn-primary shadow' : 'btn-outline-secondary' }} rounded-pill px-4 py-2">
+                        <i class="bi bi-tag"></i> {{ $cat }}
                     </a>
-                    <a href="{{ route('blog.index', ['category' => 'Tips']) }}" class="btn cat-pill {{ request('category') == 'Tips' ? 'btn-primary shadow' : 'btn-outline-secondary' }} rounded-pill px-4 py-2">
-                        <i class="bi bi-lightbulb-fill text-warning"></i> Tips
-                    </a>
+                    @endforeach
                 </div>
             </div>
         </div>
