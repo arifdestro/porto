@@ -1881,9 +1881,21 @@ html[data-theme="dark"] .admin-card-body .page-item.disabled .page-link {
         font-size: 1.3rem;
     }
 
-    .theme-toggle-btn {
-        padding: 4px 8px;
-        font-size: 0.85rem;
+    #adminThemeToggle {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--light-bg);
+        border: 1px solid var(--border);
+    }
+    
+    #adminThemeToggle i {
+        font-size: 1rem !important;
+        position: absolute;
     }
 
     .sidebar-toggle {
