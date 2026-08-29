@@ -6,13 +6,13 @@
 @section('meta_tags')
 <meta property="og:title" content="{{ $post->title }}">
 <meta property="og:description" content="{{ $post->excerpt ?? Str::limit(strip_tags($post->content), 150) }}">
-<meta property="og:image" content="{{ asset('storage/' . $post->cover_image) }}">
+<meta property="og:image" content="{{ $post->image ? (str_starts_with($post->image, 'http') ? $post->image : asset($post->image)) : asset('images/default-blog.jpg') }}">
 <meta property="og:url" content="{{ url()->current() }}">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ $post->title }}">
 <meta name="twitter:description" content="{{ $post->excerpt ?? Str::limit(strip_tags($post->content), 150) }}">
-<meta name="twitter:image" content="{{ asset('storage/' . $post->cover_image) }}">
+<meta name="twitter:image" content="{{ $post->image ? (str_starts_with($post->image, 'http') ? $post->image : asset($post->image)) : asset('images/default-blog.jpg') }}">
 @endsection
 
 @section('content')

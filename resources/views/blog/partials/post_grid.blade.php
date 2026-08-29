@@ -12,7 +12,7 @@
                 <div class="post-img-wrapper">
                     <span class="post-category bg-primary-gradient text-white">{{ $post->category ?? 'Blog' }}</span>
                     @if($post->image)
-                        <img src="{{ asset($post->image) }}" alt="{{ $post->title }}" loading="lazy">
+                        <img src="{{ str_starts_with($post->image, 'http') ? $post->image : asset($post->image) }}" alt="{{ $post->title }}" loading="lazy">
                     @else
                         <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
                             <i class="bi bi-terminal text-secondary" style="font-size: 3rem;"></i>

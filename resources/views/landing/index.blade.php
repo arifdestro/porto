@@ -104,7 +104,7 @@
             <div class="col-lg-5 mb-4 mb-lg-0" data-aos="fade-right">
                 <div class="about-image-wrapper">
                     @if(!empty($settings['about_image']))
-                        <img src="{{ asset($settings['about_image']) }}" alt="About Me" class="about-image">
+                        <img src="{{ asset($settings['about_image']) }}" alt="About Me" class="about-image" loading="lazy">
                     @else
                         <div class="about-image-placeholder">
                             <i class="bi bi-person-circle"></i>
