@@ -102,18 +102,16 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     ]);
 });
 
-// Temporary route for data transfer (remove after use)
-Route::post('/import-transfer', function (\Illuminate\Http\Request $request) {
-    $tables = $request->json()->all();
+// Temporary route to fix PostgreSQL sequences after import
+Route::get('/fix-sequences', function () {
+    $tables = ['users', 'site_settings', 'portfolios', 'skills', 'experiences', 'social_links', 'posts'];
     $results = [];
-    foreach ($tables as $tableName => $rows) {
-        \Illuminate\Support\Facades\DB::table($tableName)->delete();
-        if (!empty($rows)) {
-            foreach (array_chunk($rows, 100) as $chunk) {
-                \Illuminate\Support\Facades\DB::table($tableName)->insert($chunk);
-            }
+    foreach ($tables as $table) {
+        $sequence = \Illuminate\Support\Facades\DB::selectOne("SELECT pg_get_serial_sequence('$table', 'id') as seq");
+        if ($sequence && $sequence->seq) {
+            \Illuminate\Support\Facades\DB::statement("SELECT setval('{$sequence->seq}', COALESCE((SELECT MAX(id)+1 FROM $table), 1), false)");
+            $results[] = "Fixed sequence for $table";
         }
-        $results[$tableName] = count($rows);
     }
-    return response()->json(['status' => 'Success', 'imported' => $results]);
-})->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+    return response()->json(['status' => 'Success', 'details' => $results]);
+});
