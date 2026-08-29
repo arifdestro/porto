@@ -7,14 +7,33 @@ use Illuminate\Http\UploadedFile;
 class ImageHelper
 {
     /**
-     * Process an uploaded image: resize to max width and convert to WebP.
-     * Uses PHP built-in GD extension (no extra package required).
+     * Delete an image safely (catches Vercel read-only filesystem errors).
      *
-     * @param UploadedFile $file     The uploaded file
-     * @param string       $destDir  Destination folder relative to public_path()
-     * @param int          $maxWidth Maximum width in pixels
-     * @param int          $quality  WebP quality 1-100
-     * @return string                Relative path saved (e.g. 'uploads/portfolios/abc.webp')
+     * @param string|null $path Path or URL to the image
+     */
+    public static function delete(?string $path): void
+    {
+        if (!$path) return;
+
+        // If it's a cloudinary URL, don't try to delete locally
+        if (str_starts_with($path, 'http')) {
+            // (Optional) add Cloudinary delete logic here if needed
+            return;
+        }
+
+        $fullPath = public_path($path);
+        if (file_exists($fullPath)) {
+            try {
+                unlink($fullPath);
+            } catch (\Exception $e) {
+                // Ignore read-only file system errors on Vercel
+                // Log::info('Skipped deleting file due to read-only FS: ' . $path);
+            }
+        }
+    }
+
+    /**
+     * Process an uploaded image: resize, convert, and save (Local or Cloudinary).
      */
     public static function processAndSave(
         UploadedFile $file,
@@ -22,6 +41,69 @@ class ImageHelper
         int $maxWidth = 1200,
         int $quality = 80
     ): string {
+        
+        // 1. Check if Cloudinary is configured
+        $cloudinaryUrl = env('CLOUDINARY_URL');
+        if (!empty($cloudinaryUrl)) {
+            try {
+                $urlParts = parse_url($cloudinaryUrl);
+                $apiKey = $urlParts['user'];
+                $apiSecret = $urlParts['pass'];
+                $cloudName = $urlParts['host'];
+
+                $timestamp = time();
+                $folder = 'porto/' . $destDir;
+
+                $params = [
+                    'folder' => $folder,
+                    'timestamp' => $timestamp
+                ];
+                ksort($params);
+                
+                $sigStr = '';
+                foreach ($params as $k => $v) {
+                    $sigStr .= $k . '=' . $v . '&';
+                }
+                $sigStr = rtrim($sigStr, '&');
+                $signature = sha1($sigStr . $apiSecret);
+
+                $ch = curl_init("https://api.cloudinary.com/v1_1/{$cloudName}/auto/upload");
+                $postFields = [
+                    'api_key' => $apiKey,
+                    'timestamp' => $timestamp,
+                    'folder' => $folder,
+                    'signature' => $signature,
+                    'file' => new \CURLFile($file->getRealPath(), $file->getMimeType(), $file->getClientOriginalName())
+                ];
+
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                $response = curl_exec($ch);
+                curl_close($ch);
+
+                $json = json_decode($response, true);
+                
+                if (isset($json['secure_url'])) {
+                    $url = $json['secure_url'];
+                    
+                    // Inject transformation for images (not for raw/pdf)
+                    if ($json['resource_type'] === 'image' && strpos($url, '/image/upload/') !== false) {
+                        $transform = "c_limit,w_{$maxWidth},q_{$quality},f_webp";
+                        $url = str_replace('/image/upload/', '/image/upload/' . $transform . '/', $url);
+                    }
+                    
+                    return $url;
+                } else {
+                    \Illuminate\Support\Facades\Log::error('Cloudinary upload error: ' . $response);
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Cloudinary exception: ' . $e->getMessage());
+                // Fall back to local upload if Cloudinary fails
+            }
+        }
+
+        // 2. Local fallback (GD-based processing)
         $destPath = public_path($destDir);
 
         if (!is_dir($destPath)) {
@@ -47,7 +129,6 @@ class ImageHelper
             }
 
             if ($source) {
-                // Resize proportionally if wider than maxWidth
                 $origW = imagesx($source);
                 $origH = imagesy($source);
 

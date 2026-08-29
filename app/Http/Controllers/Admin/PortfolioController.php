@@ -94,8 +94,8 @@ class PortfolioController extends Controller
         // Handle image replacement — convert to WebP and resize
         if ($request->hasFile('image')) {
             // Delete old image if it exists
-            if ($portfolio->image && file_exists(public_path($portfolio->image))) {
-                unlink(public_path($portfolio->image));
+            if ($portfolio->image) {
+                \App\Helpers\ImageHelper::delete($portfolio->image);
             }
 
             $data['image'] = ImageHelper::processAndSave(
@@ -121,8 +121,8 @@ class PortfolioController extends Controller
     public function destroy(Portfolio $portfolio)
     {
         // Delete the image file
-        if ($portfolio->image && file_exists(public_path($portfolio->image))) {
-            unlink(public_path($portfolio->image));
+        if ($portfolio->image) {
+            \App\Helpers\ImageHelper::delete($portfolio->image);
         }
 
         $portfolio->delete();

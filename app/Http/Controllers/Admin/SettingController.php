@@ -42,8 +42,8 @@ class SettingController extends Controller
                 if ($request->hasFile($key)) {
                     // Delete old file if it exists
                     $oldValue = $setting->value;
-                    if ($oldValue && file_exists(public_path($oldValue))) {
-                        unlink(public_path($oldValue));
+                    if ($oldValue) {
+                        \App\Helpers\ImageHelper::delete($oldValue);
                     }
 
                     // Convert to WebP and resize automatically
