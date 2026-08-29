@@ -28,13 +28,11 @@ class BlogController extends Controller
         
         // Handle AJAX requests
         if ($request->ajax()) {
-            if ($request->has('page')) {
-                // Load More pagination
-                return view('blog.partials.post_grid', compact('posts'))->render();
-            } else {
-                // Category filter or Search (replaces entire main content)
-                return view('blog.partials.main_content', compact('posts'))->render();
-            }
+            $view = $request->has('page') ? 'blog.partials.post_grid' : 'blog.partials.main_content';
+            $html = view($view, compact('posts'))->render();
+            
+            // Return with Vercel Edge Caching (Cache for 1 hour, stale-while-revalidate for 1 day)
+            return response($html)->header('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
         }
 
         $categories = \App\Models\Post::where('is_published', true)

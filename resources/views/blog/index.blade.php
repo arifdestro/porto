@@ -421,9 +421,12 @@
             }
         });
 
-        // Live Filtering Logic
+        // Live Filtering Logic with JS Caching
         let currentCategory = new URLSearchParams(window.location.search).get('category') || '';
         let currentSearch = new URLSearchParams(window.location.search).get('search') || '';
+        
+        // Cache object to store previous HTML responses (instant load!)
+        const ajaxCache = new Map();
 
         function fetchPosts(category, search) {
             let url = new URL(window.location.href);
@@ -435,26 +438,39 @@
             
             url.searchParams.delete('page'); // Reset to page 1
 
+            let urlString = url.toString();
+
             // Update URL bar without reload
-            window.history.pushState({}, '', url);
+            window.history.pushState({}, '', urlString);
 
-            // Show loading indicator
-            document.getElementById('blog-main-content').innerHTML = '<div class="text-center py-5 my-5"><div class="spinner-border text-primary" role="status"></div><h5 class="mt-3 text-secondary">Loading...</h5></div>';
+            // If we already searched for this exact thing, use the JS cache! (0 ms load)
+            if (ajaxCache.has(urlString)) {
+                renderMainContent(ajaxCache.get(urlString), category, search);
+                return;
+            }
 
-            fetch(url, {
+            // Show loading indicator only if not cached
+            document.getElementById('blog-main-content').innerHTML = '<div class="text-center py-5 my-5"><div class="spinner-border text-primary" role="status"></div><h5 class="mt-3 text-secondary">Memuat data...</h5></div>';
+
+            fetch(urlString, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
             .then(res => res.text())
             .then(html => {
-                document.getElementById('blog-main-content').innerHTML = html;
-                updateCategoryButtons(category);
-                
-                // Show/hide clear button
-                const clearBtn = document.getElementById('clearSearchBtn');
-                if (clearBtn) {
-                    clearBtn.style.display = (category || search) ? '' : 'none';
-                }
+                ajaxCache.set(urlString, html); // Save to cache for next time
+                renderMainContent(html, category, search);
             });
+        }
+        
+        function renderMainContent(html, category, search) {
+            document.getElementById('blog-main-content').innerHTML = html;
+            updateCategoryButtons(category);
+            
+            // Show/hide clear button
+            const clearBtn = document.getElementById('clearSearchBtn');
+            if (clearBtn) {
+                clearBtn.style.display = (category || search) ? '' : 'none';
+            }
         }
 
         // Category click interception
@@ -467,6 +483,22 @@
                 fetchPosts(currentCategory, currentSearch);
             }
         });
+
+        // Prefetch on hover! (Magic feature for instant category switching)
+        document.addEventListener('mouseenter', function(e) {
+            let catLink = e.target.closest('a.cat-pill');
+            if (catLink) {
+                let url = new URL(catLink.href);
+                if (currentSearch) url.searchParams.set('search', currentSearch); // keep current search string
+                
+                let urlString = url.toString();
+                if (!ajaxCache.has(urlString)) {
+                    fetch(urlString, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(res => res.text())
+                    .then(html => ajaxCache.set(urlString, html));
+                }
+            }
+        }, true); // use capture phase for mouseenter delegation
 
         // Update active states on buttons
         function updateCategoryButtons(activeCat) {
