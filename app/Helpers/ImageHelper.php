@@ -89,8 +89,14 @@ class ImageHelper
                     
                     // Inject transformation for images (not for raw/pdf)
                     if ($json['resource_type'] === 'image' && strpos($url, '/image/upload/') !== false) {
-                        $transform = "c_limit,w_{$maxWidth},q_{$quality},f_webp";
-                        $url = str_replace('/image/upload/', '/image/upload/' . $transform . '/', $url);
+                        $ext = strtolower(pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
+                        if ($ext !== 'pdf') {
+                            $transform = "c_limit,w_{$maxWidth},q_{$quality},f_webp";
+                            $url = str_replace('/image/upload/', '/image/upload/' . $transform . '/', $url);
+                        } else {
+                            // Force download for PDFs
+                            $url = str_replace('/image/upload/', '/image/upload/fl_attachment/', $url);
+                        }
                     }
                     
                     return $url;
