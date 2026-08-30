@@ -65,12 +65,23 @@
                             @endif
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">CV / Resume (PDF)</label>
-                            <input type="file" class="form-control" name="hero_cv" accept=".pdf,.doc,.docx">
-                            @if(!empty($settings['hero_cv']))
+                            <label class="form-label">CV / Resume (English - PDF)</label>
+                            <input type="file" class="form-control" name="hero_cv_en" accept=".pdf,.doc,.docx">
+                            @if(!empty($settings['hero_cv_en']))
                                 <div class="mt-2">
-                                    <a href="{{ asset($settings['hero_cv']) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-file-earmark-pdf me-1"></i>View Current CV
+                                    <a href="{{ str_starts_with($settings['hero_cv_en'], 'http') ? $settings['hero_cv_en'] : asset($settings['hero_cv_en']) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-file-earmark-pdf me-1"></i>View English CV
+                                    </a>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">CV / Resume (Indonesia - PDF)</label>
+                            <input type="file" class="form-control" name="hero_cv_id" accept=".pdf,.doc,.docx">
+                            @if(!empty($settings['hero_cv_id']))
+                                <div class="mt-2">
+                                    <a href="{{ str_starts_with($settings['hero_cv_id'], 'http') ? $settings['hero_cv_id'] : asset($settings['hero_cv_id']) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-file-earmark-pdf me-1"></i>View Indonesian CV
                                     </a>
                                 </div>
                             @endif

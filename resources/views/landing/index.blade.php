@@ -119,10 +119,28 @@
                 </span>
                 <h2 class="section-title">{{ $settings['about_title'] ?? 'About Me' }}</h2>
                 <p class="about-text">{{ $settings['about_description'] ?? 'I am a passionate developer.' }}</p>
-                @if(!empty($settings['hero_cv']))
-                    <a href="{{ asset($settings['hero_cv']) }}" class="btn btn-primary-custom" download>
-                        <i class="bi bi-download me-2"></i>Download CV
-                    </a>
+                @if(!empty($settings['hero_cv_en']) || !empty($settings['hero_cv_id']))
+                    <div class="dropdown d-inline-block">
+                        <button class="btn btn-primary-custom dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-download me-2"></i>Download CV
+                        </button>
+                        <ul class="dropdown-menu shadow border-0" style="border-radius: 12px; overflow: hidden;">
+                            @if(!empty($settings['hero_cv_en']))
+                            <li>
+                                <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{{ str_starts_with($settings['hero_cv_en'], 'http') ? $settings['hero_cv_en'] : asset($settings['hero_cv_en']) }}" download>
+                                    <span>🇺🇸</span> English Version
+                                </a>
+                            </li>
+                            @endif
+                            @if(!empty($settings['hero_cv_id']))
+                            <li>
+                                <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{{ str_starts_with($settings['hero_cv_id'], 'http') ? $settings['hero_cv_id'] : asset($settings['hero_cv_id']) }}" download>
+                                    <span>🇮🇩</span> Indonesian Version
+                                </a>
+                            </li>
+                            @endif
+                        </ul>
+                    </div>
                 @endif
             </div>
         </div>

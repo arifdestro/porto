@@ -12,7 +12,7 @@ class SettingController extends Controller
     /**
      * Image-type setting keys that accept file uploads.
      */
-    protected array $imageKeys = ['hero_image', 'about_image', 'hero_cv'];
+    protected array $imageKeys = ['hero_image', 'about_image', 'hero_cv', 'hero_cv_en', 'hero_cv_id'];
 
     /**
      * Display the settings form grouped by the group field.
@@ -29,13 +29,29 @@ class SettingController extends Controller
      */
     public function update(Request $request)
     {
-        $settings = SiteSetting::all();
-
         // Keys that are boolean checkboxes (not sent when unchecked)
         $booleanKeys = ['available_for_work'];
+        
+        // Allowed keys to update to prevent mass assignment issues
+        $allowedKeys = [
+            'hero_title', 'hero_subtitle', 'hero_description', 'hero_image', 'hero_cv', 'hero_cv_en', 'hero_cv_id',
+            'about_title', 'about_description', 'about_image',
+            'contact_email', 'contact_address',
+            'site_name', 'github_username', 'footer_text', 'available_for_work'
+        ];
 
-        foreach ($settings as $setting) {
-            $key = $setting->key;
+        foreach ($allowedKeys as $key) {
+            $setting = SiteSetting::firstOrNew(['key' => $key]);
+            
+            // Set default group based on key prefix
+            if (str_starts_with($key, 'hero')) $setting->group = 'hero';
+            elseif (str_starts_with($key, 'about')) $setting->group = 'about';
+            elseif (str_starts_with($key, 'contact')) $setting->group = 'contact';
+            else $setting->group = 'general';
+            
+            // Set type
+            if (in_array($key, $this->imageKeys)) $setting->type = 'image';
+            else $setting->type = 'text';
 
             // Handle file uploads for image-type settings
             if (in_array($key, $this->imageKeys)) {
@@ -46,7 +62,7 @@ class SettingController extends Controller
                         \App\Helpers\ImageHelper::delete($oldValue);
                     }
 
-                    // Convert to WebP and resize automatically
+                    // Convert to WebP and resize automatically (or bypass for PDF)
                     $relativePath = ImageHelper::processAndSave(
                         $request->file($key),
                         'uploads',
@@ -54,15 +70,18 @@ class SettingController extends Controller
                         82
                     );
 
-                    $setting->update(['value' => $relativePath]);
+                    $setting->value = $relativePath;
+                    $setting->save();
                 }
             } elseif (in_array($key, $booleanKeys)) {
                 // Checkboxes: send '1' when checked, '0' when unchecked (not sent)
-                $setting->update(['value' => $request->has($key) ? '1' : '0']);
+                $setting->value = $request->has($key) ? '1' : '0';
+                $setting->save();
             } else {
                 // Handle regular text/textarea settings
                 if ($request->has($key)) {
-                    $setting->update(['value' => $request->input($key)]);
+                    $setting->value = $request->input($key);
+                    $setting->save();
                 }
             }
         }
