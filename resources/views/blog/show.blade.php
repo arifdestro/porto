@@ -15,6 +15,25 @@
 <meta name="twitter:image" content="{{ $post->image ? (str_starts_with($post->image, 'http') ? $post->image : asset($post->image)) : asset('images/default-blog.jpg') }}">
 @endsection
 
+@push('styles')
+<!-- Highlight.js CSS (Atom One Dark theme) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<style>
+    /* Styling for the pre blocks from summernote */
+    .blog-content pre {
+        background: #282c34;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1.5rem 0;
+        overflow-x: auto;
+    }
+    .blog-content pre code {
+        font-family: 'Fira Code', 'Consolas', monospace;
+        font-size: 0.9rem;
+    }
+</style>
+@endpush
+
 @section('content')
 <!-- Reading Progress Bar -->
 <div class="reading-progress-container">
@@ -760,6 +779,26 @@
             // Hide on initial load if at top
             if (window.scrollY < 200) shareBar.classList.add('hide-bar');
         }
+    });
+</script>
+
+<!-- Highlight.js JS for syntax highlighting -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<!-- Highlight.js additional languages (if needed, core includes popular ones like JS, PHP, Bash) -->
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        // Find all <pre> tags that Summernote generated and wrap their contents in <code> if not already wrapped
+        document.querySelectorAll('.blog-content pre').forEach((block) => {
+            if (!block.querySelector('code')) {
+                const code = document.createElement('code');
+                code.innerHTML = block.innerHTML;
+                block.innerHTML = '';
+                block.appendChild(code);
+            }
+        });
+        
+        // Initialize highlight.js on all code blocks
+        hljs.highlightAll();
     });
 </script>
 @endpush
