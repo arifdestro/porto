@@ -2,6 +2,14 @@
             @php 
                 $featured = $posts->first(); 
                 $remainingPosts = $posts->slice(1);
+                
+                $heroTitle = \App\Models\SiteSetting::get('hero_title', '');
+                $authorName = preg_replace('/^(Halo|Hello|Hi),\s*I\'?a?m\s+/i', '', $heroTitle);
+                if (empty($authorName)) {
+                    $admin = \App\Models\User::first();
+                    $authorName = $admin ? $admin->name : 'Admin Porto';
+                }
+                $authorImage = \App\Models\SiteSetting::get('hero_image');
             @endphp
             
             <!-- Featured Post -->
@@ -29,8 +37,12 @@
                             <p class="post-excerpt" style="font-size: 1.1rem;">{{ $featured->excerpt ?? Str::limit(strip_tags($featured->content), 150) }}</p>
                             <div class="post-meta mt-auto">
                                 <div class="d-flex align-items-center gap-2">
-                                    <div class="author-avatar"><i class="bi bi-person-fill"></i></div>
-                                    <span class="fw-medium text-body">Admin</span>
+                                    @if($authorImage)
+                                        <img src="{{ str_starts_with($authorImage, 'http') ? $authorImage : asset($authorImage) }}" alt="{{ $authorName }}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover;">
+                                    @else
+                                        <div class="author-avatar" style="width: 28px; height: 28px; font-size: 0.8rem;"><i class="bi bi-person-fill"></i></div>
+                                    @endif
+                                    <span class="fw-medium text-body">{{ $authorName }}</span>
                                 </div>
                                 <span class="ms-auto"><i class="bi bi-calendar3 me-1"></i> {{ $featured->created_at->format('d M Y') }}</span>
                                 <span><i class="bi bi-eye me-1"></i> {{ $featured->views }}</span>

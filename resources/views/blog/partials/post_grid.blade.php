@@ -1,3 +1,13 @@
+@php
+    $heroTitle = \App\Models\SiteSetting::get('hero_title', '');
+    $authorName = preg_replace('/^(Halo|Hello|Hi),\s*I\'?a?m\s+/i', '', $heroTitle);
+    if (empty($authorName)) {
+        $admin = \App\Models\User::first();
+        $authorName = $admin ? $admin->name : 'Admin Porto';
+    }
+    $authorImage = \App\Models\SiteSetting::get('hero_image');
+@endphp
+
 @foreach($posts as $post)
     <div class="col-md-6 col-lg-4 fade-in">
         @php
@@ -25,10 +35,17 @@
                     <a href="{{ route('blog.show', $post->slug) }}">{{ $post->title }}</a>
                 </h3>
                 <p class="post-excerpt">{{ $post->excerpt ?? Str::limit(strip_tags($post->content), 100) }}</p>
-                <div class="post-meta flex-wrap gap-2">
-                    <span class="fw-medium text-body"><i class="bi bi-person-circle me-1"></i> Admin</span>
+                <div class="post-meta flex-wrap gap-2 align-items-center">
+                    <div class="d-flex align-items-center gap-1">
+                        @if($authorImage)
+                            <img src="{{ str_starts_with($authorImage, 'http') ? $authorImage : asset($authorImage) }}" alt="{{ $authorName }}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover;">
+                        @else
+                            <i class="bi bi-person-circle"></i>
+                        @endif
+                        <span class="fw-medium text-body ms-1">{{ $authorName }}</span>
+                    </div>
                     <span class="ms-auto"><i class="bi bi-calendar3 me-1"></i> {{ $post->created_at->format('d M Y') }}</span>
-                    <span class="ms-3 text-secondary"><i class="bi bi-book-half me-1"></i> {{ $readTime }} min read</span>
+                    <span class="ms-2 text-secondary"><i class="bi bi-book-half me-1"></i> {{ $readTime }} min read</span>
                 </div>
                 <div class="mt-2">
                     <a href="{{ route('blog.show', $post->slug) }}#disqus_thread" class="text-secondary text-decoration-none" style="font-size: 0.85rem;"><i class="bi bi-chat-dots me-1"></i>0 Comments</a>

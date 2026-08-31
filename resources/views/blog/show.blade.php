@@ -1,5 +1,17 @@
 @extends('layouts.app')
 
+@php
+    $heroTitle = \App\Models\SiteSetting::get('hero_title', '');
+    $authorName = preg_replace('/^(Halo|Hello|Hi),\s*I\'?a?m\s+/i', '', $heroTitle);
+    if (empty($authorName)) {
+        $admin = \App\Models\User::first();
+        $authorName = $admin ? $admin->name : 'Admin Porto';
+    }
+    
+    $authorRole = \App\Models\SiteSetting::get('hero_subtitle', 'Web Developer');
+    $authorImage = \App\Models\SiteSetting::get('hero_image');
+@endphp
+
 @section('title', $post->title)
 @section('meta_description', $post->excerpt ?? Str::limit(strip_tags($post->content), 150))
 
@@ -131,9 +143,13 @@
                 <h1 class="display-4 fw-bolder mb-4" style="line-height: 1.25; color: var(--bs-heading-color);">{{ $post->title }}</h1>
                 
                 <div class="d-flex justify-content-center align-items-center gap-3 mt-4 text-muted">
-                    <div class="author-avatar"><i class="bi bi-person-fill"></i></div>
+                    @if($authorImage)
+                        <img src="{{ str_starts_with($authorImage, 'http') ? $authorImage : asset($authorImage) }}" alt="{{ $authorName }}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover;">
+                    @else
+                        <div class="author-avatar"><i class="bi bi-person-fill"></i></div>
+                    @endif
                     <div class="text-start">
-                        <div class="fw-bold text-body" style="font-size: 0.95rem;">Ditulis oleh Admin</div>
+                        <div class="fw-bold text-body" style="font-size: 0.95rem;">Ditulis oleh {{ $authorName }}</div>
                         <div style="font-size: 0.85rem;">
                             {{ $post->created_at->format('d M Y') }} &bull; {{ $readTime }} min read
                         </div>
@@ -170,17 +186,6 @@
                 
                 <!-- Author Box -->
                 <div class="author-glass mt-5 p-4 rounded-4 fade-in">
-                    @php
-                        $heroTitle = \App\Models\SiteSetting::get('hero_title', '');
-                        $authorName = preg_replace('/^(Halo|Hello|Hi),\s*I\'?a?m\s+/i', '', $heroTitle);
-                        if (empty($authorName)) {
-                            $admin = \App\Models\User::first();
-                            $authorName = $admin ? $admin->name : 'Admin Porto';
-                        }
-                        
-                        $authorRole = \App\Models\SiteSetting::get('hero_subtitle', 'Web Developer');
-                        $authorImage = \App\Models\SiteSetting::get('hero_image');
-                    @endphp
                     <div class="d-flex flex-column flex-sm-row gap-4 align-items-center align-items-sm-start">
                         <div class="author-avatar-large" style="{{ $authorImage ? 'background: transparent;' : '' }}">
                             @if($authorImage)
