@@ -25,7 +25,7 @@
         margin: 1.5rem 0;
     }
     /* Styling for the pre blocks from summernote */
-    .blog-content pre {
+    .article-content pre {
         background: #282c34;
         border-radius: 8px;
         padding: 1rem;
@@ -33,7 +33,7 @@
         margin: 0;
         overflow-x: auto;
     }
-    .blog-content pre code {
+    .article-content pre code {
         font-family: 'Fira Code', 'Consolas', 'Courier New', monospace;
         font-size: 0.9rem;
         line-height: 1.6;
@@ -823,7 +823,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', (event) => {
-        document.querySelectorAll('.blog-content pre').forEach((block) => {
+        document.querySelectorAll('.article-content pre').forEach((block) => {
             // 1. Clean up Summernote's HTML output inside the code block
             let codeEl = block.querySelector('code');
             if (!codeEl) {

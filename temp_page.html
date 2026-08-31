@@ -1,0 +1,1004 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        // Apply theme immediately to prevent flash of wrong theme
+        (function() {
+            var theme = localStorage.getItem('porto-theme') || 
+                (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+            document.documentElement.setAttribute('data-bs-theme', theme);
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Dalam dunia pengembangan perangkat lunak modern, aplikasi jarang berdiri sendiri. Mereka perlu berkomunikasi satu sama lain, bertukar data, dan mengin...">
+    <title>Panduan Lengkap REST API: Konsep, Implementasi, dan Kode Respons | Portfolio</title>
+    <meta property="og:title" content="Panduan Lengkap REST API: Konsep, Implementasi, dan Kode Respons">
+<meta property="og:description" content="Dalam dunia pengembangan perangkat lunak modern, aplikasi jarang berdiri sendiri. Mereka perlu berkomunikasi satu sama lain, bertukar data, dan mengin...">
+<meta property="og:image" content="https://res.cloudinary.com/xuuwxyxf/image/upload/c_limit,w_1200,q_80,f_webp/v1788159632/porto/uploads/posts/estgox7oqfdmb46efsef.jpg">
+<meta property="og:url" content="https://ftrporto.my.id/blog/panduan-lengkap-rest-api-konsep-implementasi-dan-kode-respons">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Panduan Lengkap REST API: Konsep, Implementasi, dan Kode Respons">
+<meta name="twitter:description" content="Dalam dunia pengembangan perangkat lunak modern, aplikasi jarang berdiri sendiri. Mereka perlu berkomunikasi satu sama lain, bertukar data, dan mengin...">
+<meta name="twitter:image" content="https://res.cloudinary.com/xuuwxyxf/image/upload/c_limit,w_1200,q_80,f_webp/v1788159632/porto/uploads/posts/estgox7oqfdmb46efsef.jpg">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="preload" href="/css/style.css?v=1540000000" as="style">
+    <link href="/css/style.css?v=1540000000" rel="stylesheet">
+
+    <!-- Highlight.js CSS (Atom One Dark theme) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<style>
+    /* Styling for code block wrapper */
+    .code-block-wrapper {
+        position: relative;
+        margin: 1.5rem 0;
+    }
+    /* Styling for the pre blocks from summernote */
+    .blog-content pre {
+        background: #282c34;
+        border-radius: 8px;
+        padding: 1rem;
+        padding-top: 2.5rem; /* Extra space for language label */
+        margin: 0;
+        overflow-x: auto;
+    }
+    .blog-content pre code {
+        font-family: 'Fira Code', 'Consolas', 'Courier New', monospace;
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+    /* Language label at top-left */
+    .code-lang-label {
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: rgba(255,255,255,0.1);
+        color: #abb2bf;
+        font-size: 0.7rem;
+        font-family: 'Consolas', monospace;
+        padding: 0.2rem 0.7rem;
+        border-radius: 8px 0 6px 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        z-index: 5;
+        user-select: none;
+    }
+    /* Copy button */
+    .copy-code-btn {
+        position: absolute;
+        top: 6px;
+        right: 10px;
+        font-size: 0.75rem !important;
+        padding: 0.2rem 0.5rem !important;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 10;
+    }
+    .code-block-wrapper:hover .copy-code-btn {
+        opacity: 1;
+    }
+</style>
+<style>
+    .blog-surface {
+        background-color: var(--bs-light);
+    }
+    html[data-theme="dark"] .blog-surface {
+        background-color: #1E293B;
+    }
+    .author-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: var(--bs-primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+    .author-avatar-large {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--bs-primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        flex-shrink: 0;
+    }
+    
+    /* Reading Progress Bar */
+    .reading-progress-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: transparent;
+        z-index: 1050;
+    }
+    .reading-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, var(--bs-primary), #0dcaf0);
+        width: 0%;
+        transition: width 0.1s;
+        box-shadow: 0 0 10px rgba(var(--bs-primary-rgb), 0.5);
+    }
+    
+    .sticky-share-container {
+        position: sticky;
+        top: 120px;
+    }
+    .share-btn-glass {
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: rgba(var(--bs-body-bg-rgb), 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--bs-border-color-translucent);
+        color: var(--bs-body-color);
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    .share-btn-glass:hover {
+        background: var(--bs-primary);
+        color: white;
+        transform: translateY(-3px) scale(1.1);
+        box-shadow: 0 5px 15px rgba(var(--bs-primary-rgb), 0.4);
+    }
+    
+    /* Article Content */
+    .article-content {
+        font-size: 1.15rem;
+        line-height: 1.9;
+        color: var(--bs-body-color);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .article-content p {
+        margin-bottom: 1.5rem;
+    }
+    .article-content h1, .article-content h2, .article-content h3, .article-content h4, .article-content h5, .article-content h6 {
+        color: var(--bs-heading-color);
+        font-weight: 700;
+        margin-top: 2.5rem;
+        margin-bottom: 1rem;
+        scroll-margin-top: 100px;
+    }
+    .article-content h2 {
+        font-size: 1.8rem;
+        border-bottom: 2px solid var(--bs-border-color-translucent);
+        padding-bottom: 0.5rem;
+    }
+    .article-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+        margin: 2rem 0;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        border: 1px solid var(--bs-border-color-translucent);
+    }
+    .article-content a {
+        color: var(--bs-primary);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        font-weight: 500;
+    }
+    .article-content a:hover {
+        color: var(--bs-primary-hover, #0056b3);
+    }
+    .article-content blockquote {
+        border-left: 5px solid var(--bs-primary);
+        background-color: var(--bs-light);
+        padding: 1.5rem;
+        margin: 2rem 0;
+        border-radius: 0 12px 12px 0;
+        font-style: italic;
+        color: var(--bs-secondary-color);
+    }
+    html[data-theme="dark"] .article-content blockquote {
+        background-color: #1E293B;
+    }
+    .article-content blockquote p:last-child {
+        margin-bottom: 0;
+    }
+    .article-content pre {
+        background-color: #1e1e1e;
+        color: #d4d4d4;
+        padding: 1.5rem;
+        border-radius: 12px;
+        overflow-x: auto;
+        margin: 2rem 0;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .article-content code {
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        color: var(--bs-primary);
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.9em;
+    }
+    .article-content pre code {
+        background-color: transparent;
+        color: inherit;
+        padding: 0;
+        font-size: 0.95rem;
+    }
+    .article-content ul, .article-content ol {
+        margin-bottom: 1.5rem;
+        padding-left: 2rem;
+    }
+    .article-content li {
+        margin-bottom: 0.5rem;
+    }
+
+    /* Sticky Mobile Action Bar */
+    /* Mobile Floating Share Bar */
+    .share-bar {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1070;
+        background: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color-translucent);
+        border-radius: 99px;
+        padding: 8px 16px;
+        gap: 4px;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        transition: opacity 0.3s, transform 0.3s;
+    }
+    .share-bar.hide-bar {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(-50%) translateY(12px);
+    }
+    .share-bar-btn {
+        color: var(--bs-body-color);
+        font-size: 1.15rem;
+        text-decoration: none;
+        background: none;
+        border: none;
+        padding: 6px 10px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s, background 0.2s;
+        cursor: pointer;
+        min-width: 38px;
+        min-height: 38px;
+    }
+    .share-bar-btn:hover {
+        color: var(--bs-primary);
+        background: rgba(var(--bs-primary-rgb), 0.1);
+    }
+    .share-bar-divider {
+        width: 1px;
+        height: 20px;
+        background: var(--bs-border-color);
+        margin: 0 4px;
+        opacity: 0.6;
+    }
+
+    /* Author Glass Box */
+    .author-glass {
+        background: rgba(var(--bs-primary-rgb), 0.03);
+        border: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+    }
+
+    /* ToC Nav Link Styles */
+    .toc-link {
+        transition: color 0.2s, font-weight 0.2s;
+    }
+    .toc-link:hover {
+        color: var(--bs-primary) !important;
+    }
+
+    /* Disqus Container */
+    #disqus_thread {
+        min-height: 100px;
+    }
+
+    /* ── Mobile Floating ToC ── */
+    /* FAB Button */
+    .toc-fab {
+        position: fixed;
+        bottom: 88px;
+        right: 20px;
+        z-index: 1080;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: var(--bs-primary);
+        color: #fff;
+        border: none;
+        font-size: 1.25rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+    }
+    .toc-fab:hover, .toc-fab:focus {
+        transform: scale(1.08);
+        box-shadow: 0 6px 28px rgba(0,0,0,0.3);
+        outline: none;
+    }
+    .toc-fab.toc-open {
+        transform: scale(0.9) rotate(90deg);
+    }
+
+    /* Backdrop */
+    .toc-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        z-index: 1079;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+        backdrop-filter: blur(2px);
+    }
+    .toc-backdrop.toc-open {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    /* Bottom Sheet */
+    .toc-sheet {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1081;
+        background: var(--bs-body-bg);
+        border-top-left-radius: 20px;
+        border-top-right-radius: 20px;
+        padding: 12px 20px 28px;
+        box-shadow: 0 -8px 40px rgba(0,0,0,0.2);
+        max-height: 70vh;
+        overflow-y: auto;
+        transform: translateY(100%);
+        transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+        overscroll-behavior: contain;
+    }
+    .toc-sheet.toc-open {
+        transform: translateY(0);
+    }
+    .toc-sheet-handle {
+        width: 40px;
+        height: 4px;
+        background: var(--bs-border-color);
+        border-radius: 99px;
+        margin: 0 auto 14px;
+    }
+    .toc-sheet-nav .toc-sheet-link:hover,
+    .toc-sheet-nav .toc-sheet-link:focus {
+        background: rgba(var(--bs-primary-rgb), 0.08);
+        color: var(--bs-primary) !important;
+    }
+    .toc-sheet-nav .toc-sheet-link.active-toc {
+        background: rgba(var(--bs-primary-rgb), 0.1);
+        color: var(--bs-primary) !important;
+        font-weight: 600;
+    }
+</style>
+</head>
+<body>
+    
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="loader-content">
+            <i class="bi bi-hexagon-fill loader-icon"></i>
+            <span class="loader-text">Loading</span>
+        </div>
+    </div>
+
+    <!-- Reading Progress Bar -->
+<div class="reading-progress-container">
+    <div class="reading-progress-bar" id="readingProgressBar"></div>
+</div>
+
+<!-- Navigation (Hamburger Version for Blog) -->
+<nav class="navbar navbar-expand-lg fixed-top navbar-porto py-2 py-md-3" id="blogMainNavbar">
+    <div class="container">
+        <a class="navbar-brand fw-bold m-0" href="https://ftrporto.my.id">
+            <i class="bi bi-hexagon-fill text-primary me-1"></i>Porto.
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#blogNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="blogNavbar">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+                <li class="nav-item me-lg-3 my-2 my-lg-0">
+                    <a href="https://ftrporto.my.id/blog" class="nav-link text-body fw-medium"><i class="bi bi-arrow-left me-1"></i> Back to Blog</a>
+                </li>
+                <li class="nav-item theme-toggle-li">
+                    <button class="btn theme-toggle-btn" id="themeToggle" type="button" title="Toggle Dark/Light Mode">
+                        <span class="theme-toggle-label">
+                            <span class="label-dark d-lg-none">Dark Mode</span>
+                            <span class="label-light d-lg-none">Light Mode</span>
+                        </span>
+                        <span class="theme-toggle-inner ms-lg-0">
+                            <i class="bi bi-moon-fill theme-icon-dark"></i>
+                            <i class="bi bi-sun-fill theme-icon-light"></i>
+                        </span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
+<!-- Article Header & Cover -->
+<header class="blog-header pb-5">
+    <div class="blog-header-bg"></div>
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center fade-in">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" class="mb-4 d-flex justify-content-center">
+                  <ol class="breadcrumb" style="font-size: 0.9rem;">
+                    <li class="breadcrumb-item"><a href="https://ftrporto.my.id" class="text-decoration-none">Home</a></li>
+                    <li class="breadcrumb-item"><a href="https://ftrporto.my.id/blog" class="text-decoration-none">Blog</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Belajar</li>
+                  </ol>
+                </nav>
+
+                <h1 class="display-4 fw-bolder mb-4" style="line-height: 1.25; color: var(--bs-heading-color);">Panduan Lengkap REST API: Konsep, Implementasi, dan Kode Respons</h1>
+                
+                <div class="d-flex justify-content-center align-items-center gap-3 mt-4 text-muted">
+                    <div class="author-avatar"><i class="bi bi-person-fill"></i></div>
+                    <div class="text-start">
+                        <div class="fw-bold text-body" style="font-size: 0.95rem;">Ditulis oleh Admin</div>
+                        <div style="font-size: 0.85rem;">
+                            31 Aug 2026 &bull; 8 min read
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hero Cover Image -->
+                <div class="row justify-content-center mt-5 fade-in">
+            <div class="col-lg-10">
+                <div class="hero-cover-container">
+                    <img src="https://res.cloudinary.com/xuuwxyxf/image/upload/c_limit,w_1200,q_80,f_webp/v1788159632/porto/uploads/posts/estgox7oqfdmb46efsef.jpg" alt="Panduan Lengkap REST API: Konsep, Implementasi, dan Kode Respons" class="hero-cover-img">
+                </div>
+            </div>
+        </div>
+            </div>
+</header>
+
+<!-- Article Content -->
+<article class="py-5 bg-body">
+    <div class="container">
+        <div class="row justify-content-center gap-lg-4">
+            
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <!-- Mobile ToC FAB (floating button) - rendered later as overlay -->
+
+                <div class="article-content article-body fade-in">
+                    <p>Dalam dunia pengembangan perangkat lunak modern, aplikasi jarang berdiri sendiri. Mereka perlu berkomunikasi satu sama lain, bertukar data, dan mengintegrasikan layanan. Di sinilah <b>API (Application Programming Interface)</b> berperan, dan <b>REST (Representational State Transfer)</b> adalah salah satu arsitektur API yang paling populer dan banyak digunakan saat ini.</p><p>Artikel ini akan membahas secara tuntas apa itu REST API, bagaimana cara kerjanya, kode respons HTTP yang sering digunakan, hingga contoh implementasi lengkapnya menggunakan Node.js dan Express.</p><h2 id="apa-itu-rest-api"><b>Apa itu REST API?</b></h2><p><b>REST</b> adalah singkatan dari Representational State Transfer. Ini bukanlah sebuah bahasa pemrograman atau framework, melainkan sebuah gaya arsitektur standar untuk merancang aplikasi jaringan. API yang mengikuti prinsip-prinsip arsitektur REST disebut sebagai <b>RESTful API</b>.</p><p>Secara sederhana, REST API memungkinkan dua sistem berkomunikasi melalui internet dengan menggunakan protokol HTTP (Hypertext Transfer Protocol). Format pertukaran data yang paling umum digunakan dalam REST API adalah <b>JSON (JavaScript Object Notation)</b> karena sifatnya yang ringan dan mudah dibaca oleh manusia maupun mesin.</p><h3 id="prinsip-utama-rest"><b>Prinsip Utama REST:</b></h3><ol><li><b>Client-Server</b>: Memisahkan antarmuka pengguna (klien) dari penyimpanan data dan logika bisnis (server).</li><li><b>Stateless</b>: Setiap permintaan dari klien ke server harus berisi semua informasi yang dibutuhkan untuk memahami dan memproses permintaan tersebut. Server tidak menyimpan state atau sesi klien.</li><li><b>Cacheable</b>: Respons dari server harus didefinisikan sebagai cacheable atau tidak untuk menghemat bandwidth dan meningkatkan kecepatan.</li><li><b>Uniform Interface</b>: Menggunakan antarmuka yang seragam (biasanya URL dan HTTP method) untuk berinteraksi dengan sumber daya (resource).</li></ol><h2 id="bagaimana-cara-kerja-rest-api"><b>Bagaimana Cara Kerja REST API?</b></h2><p>REST API bekerja berdasarkan model request-response (permintaan-respons). Klien mengirimkan HTTP request ke endpoint (URL) tertentu di server, dan server merespons dengan data yang diminta atau status operasi.</p><p><img src="https://res.cloudinary.com/xuuwxyxf/image/upload/c_limit,w_1200,q_80,f_webp/v1788158599/porto/uploads/posts/content/azxdwjyesdo6yptiabsv.jpg" style="width: 708.611px;"></p><p>Klien (misalnya aplikasi web, aplikasi mobile, atau server lain) akan menggunakan <b>HTTP Methods</b> (Kata kerja HTTP) untuk memberi tahu server aksi apa yang ingin dilakukan terhadap suatu sumber daya (resource).</p><h3 id="http-methods-operasi-crud"><b>HTTP Methods (Operasi CRUD)</b></h3><p>Dalam REST, resource dimanipulasi menggunakan metode HTTP standar, yang sering dipetakan ke dalam operasi <b>CRUD (Create, Read, Update, Delete)</b>:</p><ul><li><b>GET (Read)</b>: Mengambil data atau resource dari server. (Contoh: <font color="#000000" style="background-color: rgb(255, 255, 0);"><b>GET /users</b></font> untuk mengambil daftar pengguna).</li><li><b>POST (Create)</b>: Mengirim data baru ke server untuk membuat resource baru. (Contoh: <font color="#000000" style="background-color: rgb(255, 255, 0);"><b>POST /users</b></font> dengan membawa payload JSON untuk membuat pengguna baru).</li><li><b>PUT (Update)</b>: Memperbarui resource yang sudah ada secara keseluruhan. (Contoh: <font color="#000000" style="background-color: rgb(255, 255, 0);"><b>PUT /users/1</b></font> untuk memperbarui semua data pengguna dengan ID 1).</li><li><b>PATCH (Update Sebagian)</b>: Memperbarui sebagian data dari sebuah resource.</li><li><b>DELETE (Delete)</b>: Menghapus resource dari server. (Contoh: <font color="#000000" style="background-color: rgb(255, 255, 0);"><b>DELETE /users/1</b></font>).</li></ul><h3 id="kode-respons-http-http-status-codes-dalam-rest-api"><b>Kode Respons HTTP (HTTP Status Codes) dalam REST API</b></h3><p>Ketika server selesai memproses permintaan, server akan mengembalikan balasan beserta HTTP Status Code. Kode ini sangat penting bagi klien untuk mengetahui apakah permintaan berhasil, gagal, atau terjadi error.</p><p>Kode respons dibagi menjadi beberapa kategori berdasarkan angka pertamanya:</p><h4><b>2xx: Success (Berhasil)</b></h4><ul><li><b>200 OK</b>: Permintaan berhasil. Sering digunakan pada respons <b><font color="#000000" style="background-color: rgb(255, 255, 0);">GET</font>, <font color="#000000" style="background-color: rgb(255, 255, 0);">PUT</font>, </b>atau<b> <font color="#000000" style="background-color: rgb(255, 255, 0);">DELETE</font></b>.</li><li><b>201 Created</b>: Permintaan berhasil dan resource baru telah dibuat (Biasanya respons dari <b><font color="#000000" style="background-color: rgb(255, 255, 0);">POST</font></b>).</li><li><b>204 No Content</b>: Permintaan berhasil, tetapi tidak ada data yang dikembalikan dalam body respons (Sering digunakan pada <b><font color="#000000" style="background-color: rgb(255, 255, 0);">DELETE</font></b> yang sukses).</li></ul><h4><b>3xx: Redirection (Pengalihan)</b></h4><ul><li><b>301 Moved Permanently</b>: Resource telah dipindahkan secara permanen ke URL baru.</li><li><b>304 Not Modified</b>: Resource tidak berubah sejak terakhir kali klien memintanya (digunakan untuk <i>caching</i>).</li></ul><h4><b>4xx: Client Error (Kesalahan Klien)</b></h4><ul><li><b>400 Bad Request</b>: Permintaan tidak valid, sintaks salah, atau data yang dikirim tidak sesuai (misal: validasi gagal).</li><li><b>401 Unauthorized</b>: Klien belum terautentikasi (belum login atau token tidak valid).</li><li><b>403 Forbidden</b>: Klien terautentikasi, tetapi tidak memiliki izin (otorisasi) untuk mengakses resource tersebut.</li><li><b>404 Not Found</b>: Resource atau <i>endpoint </i>yang diminta tidak ditemukan di server.</li><li><b>405 Method Not Allowed</b>: Metode HTTP yang digunakan tidak diizinkan untuk <i>endpoint </i>tersebut (misal: mengirim <b><font color="#000000" style="background-color: rgb(255, 255, 0);">POST </font></b>ke <i>endpoint </i>yang hanya menerima <b><font color="#000000" style="background-color: rgb(255, 255, 0);">GET</font></b>).</li><li><b>422 Unprocessable Entity</b>: Format permintaan sudah benar, tetapi server tidak dapat memproses instruksi yang ada di dalamnya (sering digunakan untuk error validasi spesifik).</li></ul><h4><b>5xx: Server Error (Kesalahan Server)</b></h4><ul><li><b>500 Internal Server Error</b>: Terjadi kesalahan tidak terduga di sisi server (misal: kode <i>crash</i>, koneksi database gagal).</li><li><b>502 Bad Gateway</b>: Server yang bertindak sebagai <i>gateway </i>atau <i>proxy </i>menerima respons tidak valid dari <i>upstream server</i>.</li><li><b>503 Service Unavailable</b>: Server tidak dapat menangani permintaan saat ini, biasanya karena sedang <i>down </i>atau terlalu banyak beban (<i>overload</i>).</li></ul><h2 id="contoh-implementasi-lengkap-nodejs-express"><b>Contoh Implementasi Lengkap (Node.js &amp; Express)</b></h2><p>Berikut adalah contoh implementasi REST API sederhana untuk mengelola entitas "Buku" (Books) menggunakan Node.js dan framework <b><font color="#000000" style="background-color: rgb(255, 255, 0);">Express</font></b>.</p><h3 id="persiapan"><b>Persiapan</b></h3><p>Pertama, pastikan Anda telah menginisialisasi project dan menginstal express.</p><pre>npm init -y<br>npm install express</pre><p>Kode Implementasi (<b><font color="#000000" style="background-color: rgb(255, 255, 0);">index.js</font></b>)</p><pre>const express = require('express');<br>const app = express();<br>const PORT = 3000;<br>// Middleware untuk mem-parsing body berformat JSON<br>app.use(express.json());<br>// Simulasi database di dalam memory<br>let books = [<br>&nbsp; &nbsp; { id: 1, title: 'Belajar Node.js', author: 'John Doe' },<br>&nbsp; &nbsp; { id: 2, title: 'REST API untuk Pemula', author: 'Jane Doe' }<br>];<br>// 1. GET /books - Mengambil semua buku<br>app.get('/api/books', (req, res) =&gt; {<br>&nbsp; &nbsp; res.status(200).json({<br>&nbsp; &nbsp; &nbsp; &nbsp; success: true,<br>&nbsp; &nbsp; &nbsp; &nbsp; message: 'Berhasil mengambil data buku',<br>&nbsp; &nbsp; &nbsp; &nbsp; data: books<br>&nbsp; &nbsp; });<br>});<br>// 2. GET /books/:id - Mengambil buku berdasarkan ID<br>app.get('/api/books/:id', (req, res) =&gt; {<br>&nbsp; &nbsp; const bookId = parseInt(req.params.id);<br>&nbsp; &nbsp; const book = books.find(b =&gt; b.id === bookId);<br>&nbsp; &nbsp; if (!book) {<br>&nbsp; &nbsp; &nbsp; &nbsp; // Mengembalikan 404 Not Found jika buku tidak ada<br>&nbsp; &nbsp; &nbsp; &nbsp; return res.status(404).json({<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; success: false,<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; message: `Buku dengan ID ${bookId} tidak ditemukan`<br>&nbsp; &nbsp; &nbsp; &nbsp; });<br>&nbsp; &nbsp; }<br>&nbsp; &nbsp; res.status(200).json({<br>&nbsp; &nbsp; &nbsp; &nbsp; success: true,<br>&nbsp; &nbsp; &nbsp; &nbsp; data: book<br>&nbsp; &nbsp; });<br>});<br>// 3. POST /books - Menambahkan buku baru<br>app.post('/api/books', (req, res) =&gt; {<br>&nbsp; &nbsp; const { title, author } = req.body;<br>&nbsp; &nbsp; // Validasi sederhana (Merespons 400 Bad Request jika data tidak lengkap)<br>&nbsp; &nbsp; if (!title || !author) {<br>&nbsp; &nbsp; &nbsp; &nbsp; return res.status(400).json({<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; success: false,<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; message: 'Title dan Author wajib diisi'<br>&nbsp; &nbsp; &nbsp; &nbsp; });<br>&nbsp; &nbsp; }<br>&nbsp; &nbsp; const newBook = {<br>&nbsp; &nbsp; &nbsp; &nbsp; id: books.length &gt; 0 ? books[books.length - 1].id + 1 : 1, // Auto-increment ID<br>&nbsp; &nbsp; &nbsp; &nbsp; title: title,<br>&nbsp; &nbsp; &nbsp; &nbsp; author: author<br>&nbsp; &nbsp; };<br>&nbsp; &nbsp; books.push(newBook);<br>&nbsp; &nbsp; // Mengembalikan 201 Created<br>&nbsp; &nbsp; res.status(201).json({<br>&nbsp; &nbsp; &nbsp; &nbsp; success: true,<br>&nbsp; &nbsp; &nbsp; &nbsp; message: 'Buku berhasil ditambahkan',<br>&nbsp; &nbsp; &nbsp; &nbsp; data: newBook<br>&nbsp; &nbsp; });<br>});<br>// 4. PUT /books/:id - Memperbarui data buku<br>app.put('/api/books/:id', (req, res) =&gt; {<br>&nbsp; &nbsp; const bookId = parseInt(req.params.id);<br>&nbsp; &nbsp; const { title, author } = req.body;<br>&nbsp; &nbsp; const bookIndex = books.findIndex(b =&gt; b.id === bookId);<br>&nbsp; &nbsp; if (bookIndex === -1) {<br>&nbsp; &nbsp; &nbsp; &nbsp; return res.status(404).json({<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; success: false,<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; message: 'Buku tidak ditemukan'<br>&nbsp; &nbsp; &nbsp; &nbsp; });<br>&nbsp; &nbsp; }<br>&nbsp; &nbsp; // Memperbarui data<br>&nbsp; &nbsp; books[bookIndex] = {<br>&nbsp; &nbsp; &nbsp; &nbsp; id: bookId,<br>&nbsp; &nbsp; &nbsp; &nbsp; title: title || books[bookIndex].title,<br>&nbsp; &nbsp; &nbsp; &nbsp; author: author || books[bookIndex].author<br>&nbsp; &nbsp; };<br>&nbsp; &nbsp; res.status(200).json({<br>&nbsp; &nbsp; &nbsp; &nbsp; success: true,<br>&nbsp; &nbsp; &nbsp; &nbsp; message: 'Buku berhasil diperbarui',<br>&nbsp; &nbsp; &nbsp; &nbsp; data: books[bookIndex]<br>&nbsp; &nbsp; });<br>});<br>// 5. DELETE /books/:id - Menghapus buku<br>app.delete('/api/books/:id', (req, res) =&gt; {<br>&nbsp; &nbsp; const bookId = parseInt(req.params.id);<br>&nbsp; &nbsp; const bookIndex = books.findIndex(b =&gt; b.id === bookId);<br>&nbsp; &nbsp; if (bookIndex === -1) {<br>&nbsp; &nbsp; &nbsp; &nbsp; return res.status(404).json({<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; success: false,<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; message: 'Buku tidak ditemukan'<br>&nbsp; &nbsp; &nbsp; &nbsp; });<br>&nbsp; &nbsp; }<br>&nbsp; &nbsp; // Menghapus buku dari array<br>&nbsp; &nbsp; books.splice(bookIndex, 1);<br>&nbsp; &nbsp; // Mengembalikan 200 OK dengan pesan sukses<br>&nbsp; &nbsp; res.status(200).json({<br>&nbsp; &nbsp; &nbsp; &nbsp; success: true,<br>&nbsp; &nbsp; &nbsp; &nbsp; message: 'Buku berhasil dihapus'<br>&nbsp; &nbsp; });<br>});<br>// Menjalankan server<br>app.listen(PORT, () =&gt; {<br>&nbsp; &nbsp; console.log(`Server berjalan di http://localhost:${PORT}`);<br>});</pre><h3 id="cara-menguji-api-menggunakan-curl"><b>Cara Menguji API (menggunakan curl)</b></h3><p>GET Semua Buku (200 OK):</p><pre>curl -X GET http://localhost:3000/api/books</pre><p>POST Tambah Buku (201 Created):</p><pre>curl -X POST -H "Content-Type: application/json" -d '{"title":"Clean Code", "author":"Robert C. Martin"}' http://localhost:3000/api/books</pre><p>Mencoba POST tanpa judul (400 Bad Request):</p><pre>curl -X POST -H "Content-Type: application/json" -d '{"author":"Penulis X"}' http://localhost:3000/api/books</pre><p>GET Buku yang tidak ada (404 Not Found):</p><pre>curl -X GET http://localhost:3000/api/books/99</pre><h2 id="kesimpulan"><b>Kesimpulan</b></h2><p>REST API adalah standar industri untuk membangun layanan web yang terukur dan efisien. Dengan memahami prinsip <i>stateless</i>, penggunaan HTTP <i>methods </i>yang tepat (CRUD), dan memberikan HTTP <i>status codes</i> yang sesuai, Anda dapat membangun API yang kuat, mudah dimengerti, dan mudah diintegrasikan oleh aplikasi client (seperti aplikasi mobile, frontend web, atau sistem pihak ketiga).</p>
+                </div>
+                
+                <!-- Author Box -->
+                <div class="author-glass mt-5 p-4 rounded-4 fade-in">
+                                        <div class="d-flex flex-column flex-sm-row gap-4 align-items-center align-items-sm-start">
+                        <div class="author-avatar-large" style="background: transparent;">
+                                                            <img src="/uploads/1781300454_Profile-removebg-preview (1).png" alt="FITRA" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                                                    </div>
+                        <div class="text-center text-sm-start">
+                            <h5 class="fw-bold mb-1">FITRA</h5>
+                            <p class="text-secondary mb-2" style="font-size: 0.95rem;">IT Support &amp; Web Developer</p>
+                            <p class="text-muted mb-0" style="font-size: 0.9rem;">Menulis seputar pemrograman web, tutorial Laravel, dan pengalaman di dunia IT. Temukan saya di sosial media untuk diskusi lebih lanjut.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Disqus Comments Section -->
+                <div class="mt-5 pt-4 border-top fade-in">
+                    <h4 class="fw-bold mb-4">Komentar</h4>
+                    <div id="disqus_thread"></div>
+                </div>
+            </div>
+            
+            <!-- Right Sidebar (Desktop only) -->
+            <div class="col-lg-3 d-none d-lg-block">
+                <div class="sticky-top pt-2" style="top: 100px;">
+                    <div class="p-4 rounded-4" style="background: rgba(var(--bs-primary-rgb), 0.03); border: 1px solid rgba(var(--bs-primary-rgb), 0.1);">
+                        
+                        <!-- Desktop ToC -->
+                                                <h6 class="fw-bold text-uppercase mb-3" style="letter-spacing: 1px; font-size: 0.85rem;"><i class="bi bi-list-nested me-2"></i>Daftar Isi</h6>
+                        <nav class="toc-nav mb-4">
+                            <ul class="list-unstyled mb-0">
+                                                                    <li class="mb-2" style="padding-left: 0rem; border-left: 2px solid transparent;" id="toc-item-apa-itu-rest-api">
+                                        <a href="#apa-itu-rest-api" class="text-decoration-none text-body toc-link" style="font-size: 0.9rem; transition: color 0.2s;">Apa itu REST API?</a>
+                                    </li>
+                                                                    <li class="mb-2" style="padding-left: 1rem; border-left: 2px solid transparent;" id="toc-item-prinsip-utama-rest">
+                                        <a href="#prinsip-utama-rest" class="text-decoration-none text-body toc-link" style="font-size: 0.9rem; transition: color 0.2s;">Prinsip Utama REST:</a>
+                                    </li>
+                                                                    <li class="mb-2" style="padding-left: 0rem; border-left: 2px solid transparent;" id="toc-item-bagaimana-cara-kerja-rest-api">
+                                        <a href="#bagaimana-cara-kerja-rest-api" class="text-decoration-none text-body toc-link" style="font-size: 0.9rem; transition: color 0.2s;">Bagaimana Cara Kerja REST API?</a>
+                                    </li>
+                                                                    <li class="mb-2" style="padding-left: 1rem; border-left: 2px solid transparent;" id="toc-item-http-methods-operasi-crud">
+                                        <a href="#http-methods-operasi-crud" class="text-decoration-none text-body toc-link" style="font-size: 0.9rem; transition: color 0.2s;">HTTP Methods (Operasi CRUD)</a>
+                                    </li>
+                                                                    <li class="mb-2" style="padding-left: 1rem; border-left: 2px solid transparent;" id="toc-item-kode-respons-http-http-status-codes-dalam-rest-api">
+                                        <a href="#kode-respons-http-http-status-codes-dalam-rest-api" class="text-decoration-none text-body toc-link" style="font-size: 0.9rem; transition: color 0.2s;">Kode Respons HTTP (HTTP Status Codes) dalam REST API</a>
+                                    </li>
+                                                                    <li class="mb-2" style="padding-left: 0rem; border-left: 2px solid transparent;" id="toc-item-contoh-implementasi-lengkap-nodejs-express">
+                                        <a href="#contoh-implementasi-lengkap-nodejs-express" class="text-decoration-none text-body toc-link" style="font-size: 0.9rem; transition: color 0.2s;">Contoh Implementasi Lengkap (Node.js &amp; Express)</a>
+                                    </li>
+                                                                    <li class="mb-2" style="padding-left: 1rem; border-left: 2px solid transparent;" id="toc-item-persiapan">
+                                        <a href="#persiapan" class="text-decoration-none text-body toc-link" style="font-size: 0.9rem; transition: color 0.2s;">Persiapan</a>
+                                    </li>
+                                                                    <li class="mb-2" style="padding-left: 1rem; border-left: 2px solid transparent;" id="toc-item-cara-menguji-api-menggunakan-curl">
+                                        <a href="#cara-menguji-api-menggunakan-curl" class="text-decoration-none text-body toc-link" style="font-size: 0.9rem; transition: color 0.2s;">Cara Menguji API (menggunakan curl)</a>
+                                    </li>
+                                                                    <li class="mb-2" style="padding-left: 0rem; border-left: 2px solid transparent;" id="toc-item-kesimpulan">
+                                        <a href="#kesimpulan" class="text-decoration-none text-body toc-link" style="font-size: 0.9rem; transition: color 0.2s;">Kesimpulan</a>
+                                    </li>
+                                                            </ul>
+                        </nav>
+                        <hr class="my-4" style="border-color: rgba(var(--bs-primary-rgb), 0.1);">
+                        
+                        <h6 class="fw-bold text-uppercase mb-3" style="letter-spacing: 1px; font-size: 0.85rem;">Kategori Topik</h6>
+                        <div class="d-flex flex-wrap gap-2 mb-4">
+                            <a href="https://ftrporto.my.id/blog?category=Belajar" class="badge bg-primary text-decoration-none px-3 py-2 rounded-pill">Belajar</a>
+                            <a href="https://ftrporto.my.id/blog" class="badge bg-secondary bg-opacity-10 text-body text-decoration-none px-3 py-2 rounded-pill">Web Dev</a>
+                            <a href="https://ftrporto.my.id/blog" class="badge bg-secondary bg-opacity-10 text-body text-decoration-none px-3 py-2 rounded-pill">Tech</a>
+                        </div>
+                        
+                        <h6 class="fw-bold text-uppercase mb-3" style="letter-spacing: 1px; font-size: 0.85rem;">Bagikan</h6>
+                        <div class="d-flex gap-2">
+                            <a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fftrporto.my.id%2Fblog%2Fpanduan-lengkap-rest-api-konsep-implementasi-dan-kode-respons&text=Panduan+Lengkap+REST+API%3A+Konsep%2C+Implementasi%2C+dan+Kode+Respons" target="_blank" class="btn btn-light rounded-circle border shadow-sm" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;" title="Share on X">
+                                <i class="bi bi-twitter-x"></i>
+                            </a>
+                            <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fftrporto.my.id%2Fblog%2Fpanduan-lengkap-rest-api-konsep-implementasi-dan-kode-respons" target="_blank" class="btn btn-light rounded-circle border shadow-sm" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;" title="Share on Facebook">
+                                <i class="bi bi-facebook"></i>
+                            </a>
+                            <a href="https://www.linkedin.com/shareArticle?mini=true&url=https%3A%2F%2Fftrporto.my.id%2Fblog%2Fpanduan-lengkap-rest-api-konsep-implementasi-dan-kode-respons&title=Panduan+Lengkap+REST+API%3A+Konsep%2C+Implementasi%2C+dan+Kode+Respons" target="_blank" class="btn btn-light rounded-circle border shadow-sm" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;" title="Share on LinkedIn">
+                                <i class="bi bi-linkedin"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</article>
+
+<!-- Sticky Mobile Action Bar -->
+<!-- Mobile Floating Share Bar -->
+<div class="share-bar d-flex d-lg-none" id="shareBar">
+    <a href="javascript:void(0)" class="share-bar-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'});" title="Kembali ke atas">
+        <i class="bi bi-chevron-up"></i>
+    </a>
+    <div class="share-bar-divider"></div>
+    <a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fftrporto.my.id%2Fblog%2Fpanduan-lengkap-rest-api-konsep-implementasi-dan-kode-respons&text=Panduan+Lengkap+REST+API%3A+Konsep%2C+Implementasi%2C+dan+Kode+Respons" target="_blank" class="share-bar-btn" title="Share ke X">
+        <i class="bi bi-twitter-x"></i>
+    </a>
+    <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fftrporto.my.id%2Fblog%2Fpanduan-lengkap-rest-api-konsep-implementasi-dan-kode-respons" target="_blank" class="share-bar-btn" title="Share ke Facebook">
+        <i class="bi bi-facebook"></i>
+    </a>
+    <a href="https://www.linkedin.com/shareArticle?mini=true&url=https%3A%2F%2Fftrporto.my.id%2Fblog%2Fpanduan-lengkap-rest-api-konsep-implementasi-dan-kode-respons&title=Panduan+Lengkap+REST+API%3A+Konsep%2C+Implementasi%2C+dan+Kode+Respons" target="_blank" class="share-bar-btn" title="Share ke LinkedIn">
+        <i class="bi bi-linkedin"></i>
+    </a>
+    <div class="share-bar-divider"></div>
+    <button class="share-bar-btn" id="copyLinkBtn" title="Salin link">
+        <i class="bi bi-link-45deg" id="copyLinkIcon"></i>
+    </button>
+</div>
+
+<!-- Footer -->
+<footer class="py-4 text-center mt-auto" style="background: var(--bs-body-bg); border-top: 1px solid var(--bs-border-color-translucent);">
+    <div class="container pt-3">
+        <p class="mb-0 fw-medium" style="color: var(--bs-secondary-color);">&copy; 2026 Porto Developer Blog.</p>
+    </div>
+</footer>
+
+<!-- Mobile Floating ToC Button + Bottom Sheet -->
+<div class="d-lg-none">
+
+    
+    <button class="toc-fab" id="tocFab" aria-label="Daftar Isi" title="Daftar Isi">
+        <i class="bi bi-list-nested"></i>
+    </button>
+
+    
+    <div class="toc-backdrop" id="tocBackdrop"></div>
+
+    
+    <div class="toc-sheet" id="tocSheet" aria-hidden="true">
+        <div class="toc-sheet-handle"></div>
+        <div class="d-flex justify-content-between align-items-center mb-3 px-1">
+            <h6 class="fw-bold text-uppercase mb-0" style="letter-spacing: 1px; font-size: 0.8rem;">
+                <i class="bi bi-list-nested me-2 text-primary"></i>Daftar Isi
+            </h6>
+            <button class="btn btn-sm btn-link p-0 text-body" id="tocSheetClose" aria-label="Tutup">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <nav class="toc-nav toc-sheet-nav">
+            <ul class="list-unstyled mb-0">
+                                    <li class="mb-1" style="padding-left: 0rem;">
+                        <a href="#apa-itu-rest-api" class="text-decoration-none text-body toc-link toc-sheet-link py-2 d-block" style="font-size: 0.92rem; border-radius: 8px; padding-left: 0.5rem; transition: background 0.15s, color 0.15s;">
+                            Apa itu REST API?
+                        </a>
+                    </li>
+                                    <li class="mb-1" style="padding-left: 1.2rem;">
+                        <a href="#prinsip-utama-rest" class="text-decoration-none text-body toc-link toc-sheet-link py-2 d-block" style="font-size: 0.92rem; border-radius: 8px; padding-left: 0.5rem; transition: background 0.15s, color 0.15s;">
+                            Prinsip Utama REST:
+                        </a>
+                    </li>
+                                    <li class="mb-1" style="padding-left: 0rem;">
+                        <a href="#bagaimana-cara-kerja-rest-api" class="text-decoration-none text-body toc-link toc-sheet-link py-2 d-block" style="font-size: 0.92rem; border-radius: 8px; padding-left: 0.5rem; transition: background 0.15s, color 0.15s;">
+                            Bagaimana Cara Kerja REST API?
+                        </a>
+                    </li>
+                                    <li class="mb-1" style="padding-left: 1.2rem;">
+                        <a href="#http-methods-operasi-crud" class="text-decoration-none text-body toc-link toc-sheet-link py-2 d-block" style="font-size: 0.92rem; border-radius: 8px; padding-left: 0.5rem; transition: background 0.15s, color 0.15s;">
+                            HTTP Methods (Operasi CRUD)
+                        </a>
+                    </li>
+                                    <li class="mb-1" style="padding-left: 1.2rem;">
+                        <a href="#kode-respons-http-http-status-codes-dalam-rest-api" class="text-decoration-none text-body toc-link toc-sheet-link py-2 d-block" style="font-size: 0.92rem; border-radius: 8px; padding-left: 0.5rem; transition: background 0.15s, color 0.15s;">
+                            Kode Respons HTTP (HTTP Status Codes) dalam REST API
+                        </a>
+                    </li>
+                                    <li class="mb-1" style="padding-left: 0rem;">
+                        <a href="#contoh-implementasi-lengkap-nodejs-express" class="text-decoration-none text-body toc-link toc-sheet-link py-2 d-block" style="font-size: 0.92rem; border-radius: 8px; padding-left: 0.5rem; transition: background 0.15s, color 0.15s;">
+                            Contoh Implementasi Lengkap (Node.js &amp; Express)
+                        </a>
+                    </li>
+                                    <li class="mb-1" style="padding-left: 1.2rem;">
+                        <a href="#persiapan" class="text-decoration-none text-body toc-link toc-sheet-link py-2 d-block" style="font-size: 0.92rem; border-radius: 8px; padding-left: 0.5rem; transition: background 0.15s, color 0.15s;">
+                            Persiapan
+                        </a>
+                    </li>
+                                    <li class="mb-1" style="padding-left: 1.2rem;">
+                        <a href="#cara-menguji-api-menggunakan-curl" class="text-decoration-none text-body toc-link toc-sheet-link py-2 d-block" style="font-size: 0.92rem; border-radius: 8px; padding-left: 0.5rem; transition: background 0.15s, color 0.15s;">
+                            Cara Menguji API (menggunakan curl)
+                        </a>
+                    </li>
+                                    <li class="mb-1" style="padding-left: 0rem;">
+                        <a href="#kesimpulan" class="text-decoration-none text-body toc-link toc-sheet-link py-2 d-block" style="font-size: 0.92rem; border-radius: 8px; padding-left: 0.5rem; transition: background 0.15s, color 0.15s;">
+                            Kesimpulan
+                        </a>
+                    </li>
+                            </ul>
+        </nav>
+    </div>
+
+</div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1055;">
+        
+            </div>
+
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+
+    <!-- Image Protection Script -->
+    <script>
+        document.addEventListener('contextmenu', function(e) {
+            if (e.target.tagName === 'IMG') {
+                e.preventDefault();
+            }
+        });
+    </script>
+    <script>
+        // Remove preloader when page is fully loaded
+        function hidePreloader() {
+            const preloader = document.getElementById('preloader');
+            if (preloader && !preloader.classList.contains('preloader-hidden')) {
+                preloader.classList.add('preloader-hidden');
+                setTimeout(() => preloader.style.display = 'none', 600);
+            }
+        }
+
+        window.addEventListener('load', function() {
+            setTimeout(hidePreloader, 300); // Small delay to let the animation play a bit
+        });
+
+        // Fallback: forcefully hide preloader after 3 seconds just in case assets fail to load
+        setTimeout(hidePreloader, 3000);
+        // Initialize Toasts
+        document.addEventListener('DOMContentLoaded', function () {
+            var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+            var toastList = toastElList.map(function (toastEl) {
+                return new bootstrap.Toast(toastEl, { delay: 5000 })
+            });
+            toastList.forEach(toast => toast.show());
+        });
+    </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Disqus Embed
+        var disqus_config = function () {
+            this.page.url = 'https://ftrporto.my.id/blog/panduan-lengkap-rest-api-konsep-implementasi-dan-kode-respons';
+            this.page.identifier = 'panduan-lengkap-rest-api-konsep-implementasi-dan-kode-respons';
+        };
+        (function() {
+            var d = document, s = d.createElement('script');
+            s.src = 'https://ftrporto.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+
+        // Scrollspy for ToC
+        const tocLinks = document.querySelectorAll('.toc-link');
+        const headings = document.querySelectorAll('.article-content h2, .article-content h3');
+
+        if (headings.length > 0 && tocLinks.length > 0) {
+            const observerOptions = {
+                root: null,
+                rootMargin: '-100px 0px -40% 0px',
+                threshold: 0
+            };
+
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        
+                        // Remove active class from all links
+                        document.querySelectorAll('.toc-link').forEach(l => l.classList.remove('text-primary', 'fw-bold'));
+                        document.querySelectorAll('.toc-nav li').forEach(li => li.style.borderLeftColor = 'transparent');
+                        
+                        // Add active class to current intersecting heading
+                        const activeLink = document.querySelector(`.toc-link[href="#${id}"]`);
+                        if (activeLink) {
+                            activeLink.classList.add('text-primary', 'fw-bold');
+                            const parentLi = activeLink.closest('li');
+                            if (parentLi) {
+                                parentLi.style.borderLeftColor = 'var(--bs-primary)';
+                            }
+                        }
+                    }
+                });
+            }, observerOptions);
+
+            headings.forEach(heading => {
+                observer.observe(heading);
+            });
+        }
+
+        // Smooth scroll for ToC links
+        tocLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    const yOffset = -90;
+                    const y = targetElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                    window.scrollTo({top: y, behavior: 'smooth'});
+                }
+
+                // Close mobile ToC bottom sheet if open
+                closeTocSheet();
+            });
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('blogMainNavbar');
+            if (navbar) {
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            }
+        });
+
+        const toggleBtn = document.getElementById('themeToggle');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function() {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                document.documentElement.setAttribute('data-theme', newTheme);
+                document.documentElement.setAttribute('data-bs-theme', newTheme);
+                localStorage.setItem('porto-theme', newTheme);
+
+            });
+        }
+
+        // Reading Progress Bar
+        const progressBar = document.getElementById('readingProgressBar');
+        if(progressBar) {
+            window.addEventListener('scroll', () => {
+                let scrollTop = window.scrollY || document.documentElement.scrollTop;
+                let docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                let scrollPercent = (scrollTop / docHeight) * 100;
+                progressBar.style.width = scrollPercent + '%';
+            });
+        }
+
+        // ── Mobile Floating ToC ──
+        const tocFab     = document.getElementById('tocFab');
+        const tocSheet   = document.getElementById('tocSheet');
+        const tocBackdrop = document.getElementById('tocBackdrop');
+        const tocSheetClose = document.getElementById('tocSheetClose');
+
+        function openTocSheet() {
+            if (!tocSheet) return;
+            tocSheet.classList.add('toc-open');
+            tocBackdrop.classList.add('toc-open');
+            tocFab.classList.add('toc-open');
+            tocSheet.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeTocSheet() {
+            if (!tocSheet) return;
+            tocSheet.classList.remove('toc-open');
+            tocBackdrop.classList.remove('toc-open');
+            if (tocFab) tocFab.classList.remove('toc-open');
+            tocSheet.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+        }
+
+        if (tocFab) {
+            tocFab.addEventListener('click', function() {
+                if (tocSheet.classList.contains('toc-open')) {
+                    closeTocSheet();
+                } else {
+                    openTocSheet();
+                }
+            });
+        }
+        if (tocBackdrop)  tocBackdrop.addEventListener('click', closeTocSheet);
+        if (tocSheetClose) tocSheetClose.addEventListener('click', closeTocSheet);
+
+        // Close sheet on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeTocSheet();
+        });
+
+        // Copy Link Button
+        const copyLinkBtn = document.getElementById('copyLinkBtn');
+        const copyLinkIcon = document.getElementById('copyLinkIcon');
+        if (copyLinkBtn) {
+            copyLinkBtn.addEventListener('click', function() {
+                navigator.clipboard.writeText(window.location.href).then(function() {
+                    copyLinkIcon.className = 'bi bi-check2';
+                    copyLinkBtn.style.color = 'var(--bs-success)';
+                    setTimeout(function() {
+                        copyLinkIcon.className = 'bi bi-link-45deg';
+                        copyLinkBtn.style.color = '';
+                    }, 2000);
+                });
+            });
+        }
+
+        // Auto-hide share bar when near very top
+        const shareBar = document.getElementById('shareBar');
+        if (shareBar) {
+            window.addEventListener('scroll', function() {
+                if (window.scrollY < 200) {
+                    shareBar.classList.add('hide-bar');
+                } else {
+                    shareBar.classList.remove('hide-bar');
+                }
+            }, { passive: true });
+            // Hide on initial load if at top
+            if (window.scrollY < 200) shareBar.classList.add('hide-bar');
+        }
+    });
+</script>
+
+<!-- Highlight.js JS for syntax highlighting -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        document.querySelectorAll('.blog-content pre').forEach((block) => {
+            // 1. Clean up Summernote's HTML output inside the code block
+            let codeEl = block.querySelector('code');
+            if (!codeEl) {
+                codeEl = document.createElement('code');
+                // Convert <br> to newlines, strip remaining HTML tags
+                let rawHTML = block.innerHTML;
+                rawHTML = rawHTML.replace(/<br\s*\/?>/gi, '\n');
+                rawHTML = rawHTML.replace(/<\/?(span|div|p|font|b|i|u|em|strong)[^>]*>/gi, '');
+                // Decode HTML entities
+                const temp = document.createElement('textarea');
+                temp.innerHTML = rawHTML;
+                codeEl.textContent = temp.value;
+                block.innerHTML = '';
+                block.appendChild(codeEl);
+            } else {
+                // Code tag exists but may have Summernote formatting inside
+                let rawHTML = codeEl.innerHTML;
+                rawHTML = rawHTML.replace(/<br\s*\/?>/gi, '\n');
+                rawHTML = rawHTML.replace(/<\/?(span|div|p|font|b|i|u|em|strong)[^>]*>/gi, '');
+                const temp = document.createElement('textarea');
+                temp.innerHTML = rawHTML;
+                codeEl.textContent = temp.value;
+            }
+
+            // 2. Run highlight.js on this specific block to auto-detect language
+            hljs.highlightElement(codeEl);
+
+            // 3. Get the detected language
+            const detectedLang = codeEl.className.match(/language-(\w+)/);
+            const langName = detectedLang ? detectedLang[1] : 'code';
+
+            // 4. Create wrapper
+            const wrapper = document.createElement('div');
+            wrapper.className = 'code-block-wrapper';
+            block.parentNode.insertBefore(wrapper, block);
+            wrapper.appendChild(block);
+
+            // 5. Add language label at top-left
+            const langLabel = document.createElement('span');
+            langLabel.className = 'code-lang-label';
+            langLabel.textContent = langName;
+            wrapper.appendChild(langLabel);
+
+            // 6. Add Copy button at top-right
+            const button = document.createElement('button');
+            button.className = 'btn btn-sm btn-outline-light copy-code-btn';
+            button.innerHTML = '<i class="bi bi-clipboard"></i> Copy';
+
+            button.addEventListener('click', () => {
+                const codeText = block.querySelector('code').innerText;
+                navigator.clipboard.writeText(codeText).then(() => {
+                    button.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+                    button.classList.replace('btn-outline-light', 'btn-success');
+
+                    setTimeout(() => {
+                        button.innerHTML = '<i class="bi bi-clipboard"></i> Copy';
+                        button.classList.replace('btn-success', 'btn-outline-light');
+                    }, 2000);
+                });
+            });
+
+            wrapper.appendChild(button);
+        });
+    });
+</script>
+
+    <!-- Disqus Comment Count -->
+    <script id="dsq-count-scr" src="//ftrporto.disqus.com/count.js" async></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925" integrity="sha512-d9sL6GJLXn6fInD1+TVXhTcQOsmxeHfmHAvwGDIxp5TO+uo1fiWW7mHomMj4MLRlCsJDTqXzWLHJFFlPCEIj/A==" data-cf-beacon='{"version":"2024.11.0","token":"9628cc380d6e403085c826a8b9ab9f75","r":1}' crossorigin="anonymous"></script>
+</body>
+</html>
+
