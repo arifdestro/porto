@@ -800,6 +800,11 @@
             // 2. Add wrapper for positioning the copy button
             const wrapper = document.createElement('div');
             wrapper.style.position = 'relative';
+            wrapper.style.margin = '1.5rem 0'; // Move margin to wrapper
+            
+            // Remove margin from pre to avoid positioning issues
+            block.style.margin = '0';
+            
             block.parentNode.insertBefore(wrapper, block);
             wrapper.appendChild(block);
 
@@ -814,6 +819,7 @@
             button.style.padding = '0.2rem 0.5rem';
             button.style.opacity = '0.7';
             button.style.transition = 'all 0.3s ease';
+            button.style.zIndex = '10'; // Ensure it stays on top
             
             // Hover effect
             wrapper.addEventListener('mouseenter', () => button.style.opacity = '1');
