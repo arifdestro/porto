@@ -839,19 +839,23 @@
                 block.innerHTML = '';
                 block.appendChild(codeEl);
             } else {
-                // Code tag exists but may have Summernote formatting inside
-                let rawHTML = codeEl.innerHTML;
-                rawHTML = rawHTML.replace(/<br\s*\/?>/gi, '\n');
-                rawHTML = rawHTML.replace(/<\/?(span|div|p|font|b|i|u|em|strong)[^>]*>/gi, '');
-                const temp = document.createElement('textarea');
-                temp.innerHTML = rawHTML;
-                codeEl.textContent = temp.value;
+                // Check if language class is already set (from our custom Insert Code button)
+                const hasLangClass = codeEl.className && codeEl.className.match(/language-\w+/);
+                if (!hasLangClass) {
+                    // No explicit language — clean and let hljs auto-detect
+                    let rawHTML = codeEl.innerHTML;
+                    rawHTML = rawHTML.replace(/<br\s*\/?>/gi, '\n');
+                    rawHTML = rawHTML.replace(/<\/?(span|div|p|font|b|i|u|em|strong)[^>]*>/gi, '');
+                    const temp = document.createElement('textarea');
+                    temp.innerHTML = rawHTML;
+                    codeEl.textContent = temp.value;
+                }
             }
 
-            // 2. Run highlight.js on this specific block to auto-detect language
+            // 2. Run highlight.js on this specific block
             hljs.highlightElement(codeEl);
 
-            // 3. Get the detected language
+            // 3. Get the detected/specified language
             const detectedLang = codeEl.className.match(/language-(\w+)/);
             const langName = detectedLang ? detectedLang[1] : 'code';
 

@@ -95,6 +95,92 @@
 <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
 <script>
     $(document).ready(function() {
+        // Custom "Insert Code" button for Summernote
+        var InsertCodeButton = function(context) {
+            var ui = $.summernote.ui;
+            var button = ui.button({
+                contents: '<i class="bi bi-code-slash"></i> Code',
+                tooltip: 'Insert Code Block',
+                click: function() {
+                    var languages = [
+                        'javascript', 'php', 'python', 'bash', 'html', 'css',
+                        'java', 'csharp', 'cpp', 'go', 'ruby', 'sql', 'json',
+                        'typescript', 'xml', 'yaml', 'markdown', 'dart', 'kotlin', 'swift'
+                    ];
+                    var optionsHTML = languages.map(function(lang) {
+                        return '<option value="' + lang + '">' + lang.charAt(0).toUpperCase() + lang.slice(1) + '</option>';
+                    }).join('');
+
+                    var $modal = $(`
+                        <div class="modal fade" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content" style="background: #1a202c; color: #e2e8f0; border: 1px solid #4a5568;">
+                                    <div class="modal-header border-bottom" style="border-color: #4a5568 !important;">
+                                        <h5 class="modal-title"><i class="bi bi-code-slash me-2"></i>Insert Code Block</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">Programming Language</label>
+                                            <select class="form-select" id="codeLanguageSelect" style="background: #2d3748; color: #e2e8f0; border-color: #4a5568;">
+                                                ${optionsHTML}
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">Paste your code here</label>
+                                            <textarea class="form-control" id="codeContentArea" rows="12" 
+                                                style="background: #282c34; color: #abb2bf; border-color: #4a5568; font-family: 'Consolas', monospace; font-size: 0.9rem; tab-size: 4;"
+                                                placeholder="Paste your code here..."></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer border-top" style="border-color: #4a5568 !important;">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="button" class="btn btn-primary" id="insertCodeBtn">
+                                            <i class="bi bi-plus-lg me-1"></i>Insert Code
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+
+                    $('body').append($modal);
+                    var modal = new bootstrap.Modal($modal[0]);
+                    modal.show();
+
+                    $modal.find('#codeContentArea').on('keydown', function(e) {
+                        if (e.key === 'Tab') {
+                            e.preventDefault();
+                            var start = this.selectionStart;
+                            var end = this.selectionEnd;
+                            this.value = this.value.substring(0, start) + '    ' + this.value.substring(end);
+                            this.selectionStart = this.selectionEnd = start + 4;
+                        }
+                    });
+
+                    $modal.find('#insertCodeBtn').on('click', function() {
+                        var lang = $modal.find('#codeLanguageSelect').val();
+                        var code = $modal.find('#codeContentArea').val();
+                        if (code.trim()) {
+                            var escaped = code
+                                .replace(/&/g, '&amp;')
+                                .replace(/</g, '&lt;')
+                                .replace(/>/g, '&gt;')
+                                .replace(/"/g, '&quot;');
+                            var html = '<pre><code class="language-' + lang + '">' + escaped + '</code></pre><p><br></p>';
+                            context.invoke('editor.pasteHTML', html);
+                        }
+                        modal.hide();
+                    });
+
+                    $modal.on('hidden.bs.modal', function() {
+                        $modal.remove();
+                    });
+                }
+            });
+            return button.render();
+        };
+
         $('#summernote').summernote({
             placeholder: 'Write your awesome blog post here...',
             tabsize: 2,
@@ -107,8 +193,12 @@
                 ['para', ['ul', 'ol', 'paragraph']],
                 ['table', ['table']],
                 ['insert', ['link', 'picture', 'video']],
+                ['code', ['insertCode']],
                 ['view', ['fullscreen', 'codeview', 'help']]
             ],
+            buttons: {
+                insertCode: InsertCodeButton
+            },
             callbacks: {
                 onInit: function() {
                     function applyDarkToEditor() {
