@@ -787,14 +787,55 @@
 <!-- Highlight.js additional languages (if needed, core includes popular ones like JS, PHP, Bash) -->
 <script>
     document.addEventListener('DOMContentLoaded', (event) => {
-        // Find all <pre> tags that Summernote generated and wrap their contents in <code> if not already wrapped
+        // Find all <pre> tags that Summernote generated
         document.querySelectorAll('.blog-content pre').forEach((block) => {
+            // 1. Wrap in code tag if missing
             if (!block.querySelector('code')) {
                 const code = document.createElement('code');
                 code.innerHTML = block.innerHTML;
                 block.innerHTML = '';
                 block.appendChild(code);
             }
+
+            // 2. Add wrapper for positioning the copy button
+            const wrapper = document.createElement('div');
+            wrapper.style.position = 'relative';
+            block.parentNode.insertBefore(wrapper, block);
+            wrapper.appendChild(block);
+
+            // 3. Create the Copy button
+            const button = document.createElement('button');
+            button.className = 'btn btn-sm btn-outline-light copy-code-btn';
+            button.innerHTML = '<i class="bi bi-clipboard"></i> Copy';
+            button.style.position = 'absolute';
+            button.style.top = '10px';
+            button.style.right = '10px';
+            button.style.fontSize = '0.75rem';
+            button.style.padding = '0.2rem 0.5rem';
+            button.style.opacity = '0.7';
+            button.style.transition = 'all 0.3s ease';
+            
+            // Hover effect
+            wrapper.addEventListener('mouseenter', () => button.style.opacity = '1');
+            wrapper.addEventListener('mouseleave', () => button.style.opacity = '0.7');
+
+            // Copy logic
+            button.addEventListener('click', () => {
+                const codeText = block.querySelector('code').innerText;
+                navigator.clipboard.writeText(codeText).then(() => {
+                    button.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+                    button.classList.replace('btn-outline-light', 'btn-success');
+                    button.style.opacity = '1';
+                    
+                    setTimeout(() => {
+                        button.innerHTML = '<i class="bi bi-clipboard"></i> Copy';
+                        button.classList.replace('btn-success', 'btn-outline-light');
+                        button.style.opacity = '0.7';
+                    }, 2000);
+                });
+            });
+
+            wrapper.appendChild(button);
         });
         
         // Initialize highlight.js on all code blocks
