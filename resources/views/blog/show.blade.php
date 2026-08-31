@@ -19,17 +19,54 @@
 <!-- Highlight.js CSS (Atom One Dark theme) -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
 <style>
+    /* Styling for code block wrapper */
+    .code-block-wrapper {
+        position: relative;
+        margin: 1.5rem 0;
+    }
     /* Styling for the pre blocks from summernote */
     .blog-content pre {
         background: #282c34;
         border-radius: 8px;
         padding: 1rem;
-        margin: 1.5rem 0;
+        padding-top: 2.5rem; /* Extra space for language label */
+        margin: 0;
         overflow-x: auto;
     }
     .blog-content pre code {
-        font-family: 'Fira Code', 'Consolas', monospace;
+        font-family: 'Fira Code', 'Consolas', 'Courier New', monospace;
         font-size: 0.9rem;
+        line-height: 1.6;
+    }
+    /* Language label at top-left */
+    .code-lang-label {
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: rgba(255,255,255,0.1);
+        color: #abb2bf;
+        font-size: 0.7rem;
+        font-family: 'Consolas', monospace;
+        padding: 0.2rem 0.7rem;
+        border-radius: 8px 0 6px 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        z-index: 5;
+        user-select: none;
+    }
+    /* Copy button */
+    .copy-code-btn {
+        position: absolute;
+        top: 6px;
+        right: 10px;
+        font-size: 0.75rem !important;
+        padding: 0.2rem 0.5rem !important;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 10;
+    }
+    .code-block-wrapper:hover .copy-code-btn {
+        opacity: 1;
     }
 </style>
 @endpush
@@ -784,68 +821,72 @@
 
 <!-- Highlight.js JS for syntax highlighting -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<!-- Highlight.js additional languages (if needed, core includes popular ones like JS, PHP, Bash) -->
 <script>
     document.addEventListener('DOMContentLoaded', (event) => {
-        // Find all <pre> tags that Summernote generated
         document.querySelectorAll('.blog-content pre').forEach((block) => {
-            // 1. Wrap in code tag if missing
-            if (!block.querySelector('code')) {
-                const code = document.createElement('code');
-                code.innerHTML = block.innerHTML;
+            // 1. Clean up Summernote's HTML output inside the code block
+            let codeEl = block.querySelector('code');
+            if (!codeEl) {
+                codeEl = document.createElement('code');
+                // Convert <br> to newlines, strip remaining HTML tags
+                let rawHTML = block.innerHTML;
+                rawHTML = rawHTML.replace(/<br\s*\/?>/gi, '\n');
+                rawHTML = rawHTML.replace(/<\/?(span|div|p|font|b|i|u|em|strong)[^>]*>/gi, '');
+                // Decode HTML entities
+                const temp = document.createElement('textarea');
+                temp.innerHTML = rawHTML;
+                codeEl.textContent = temp.value;
                 block.innerHTML = '';
-                block.appendChild(code);
+                block.appendChild(codeEl);
+            } else {
+                // Code tag exists but may have Summernote formatting inside
+                let rawHTML = codeEl.innerHTML;
+                rawHTML = rawHTML.replace(/<br\s*\/?>/gi, '\n');
+                rawHTML = rawHTML.replace(/<\/?(span|div|p|font|b|i|u|em|strong)[^>]*>/gi, '');
+                const temp = document.createElement('textarea');
+                temp.innerHTML = rawHTML;
+                codeEl.textContent = temp.value;
             }
 
-            // 2. Add wrapper for positioning the copy button
+            // 2. Run highlight.js on this specific block to auto-detect language
+            hljs.highlightElement(codeEl);
+
+            // 3. Get the detected language
+            const detectedLang = codeEl.className.match(/language-(\w+)/);
+            const langName = detectedLang ? detectedLang[1] : 'code';
+
+            // 4. Create wrapper
             const wrapper = document.createElement('div');
-            wrapper.style.position = 'relative';
-            wrapper.style.margin = '1.5rem 0'; // Move margin to wrapper
-            
-            // Remove margin from pre to avoid positioning issues
-            block.style.margin = '0';
-            
+            wrapper.className = 'code-block-wrapper';
             block.parentNode.insertBefore(wrapper, block);
             wrapper.appendChild(block);
 
-            // 3. Create the Copy button
+            // 5. Add language label at top-left
+            const langLabel = document.createElement('span');
+            langLabel.className = 'code-lang-label';
+            langLabel.textContent = langName;
+            wrapper.appendChild(langLabel);
+
+            // 6. Add Copy button at top-right
             const button = document.createElement('button');
             button.className = 'btn btn-sm btn-outline-light copy-code-btn';
             button.innerHTML = '<i class="bi bi-clipboard"></i> Copy';
-            button.style.position = 'absolute';
-            button.style.top = '10px';
-            button.style.right = '10px';
-            button.style.fontSize = '0.75rem';
-            button.style.padding = '0.2rem 0.5rem';
-            button.style.opacity = '0.7';
-            button.style.transition = 'all 0.3s ease';
-            button.style.zIndex = '10'; // Ensure it stays on top
-            
-            // Hover effect
-            wrapper.addEventListener('mouseenter', () => button.style.opacity = '1');
-            wrapper.addEventListener('mouseleave', () => button.style.opacity = '0.7');
 
-            // Copy logic
             button.addEventListener('click', () => {
                 const codeText = block.querySelector('code').innerText;
                 navigator.clipboard.writeText(codeText).then(() => {
                     button.innerHTML = '<i class="bi bi-check2"></i> Copied!';
                     button.classList.replace('btn-outline-light', 'btn-success');
-                    button.style.opacity = '1';
-                    
+
                     setTimeout(() => {
                         button.innerHTML = '<i class="bi bi-clipboard"></i> Copy';
                         button.classList.replace('btn-success', 'btn-outline-light');
-                        button.style.opacity = '0.7';
                     }, 2000);
                 });
             });
 
             wrapper.appendChild(button);
         });
-        
-        // Initialize highlight.js on all code blocks
-        hljs.highlightAll();
     });
 </script>
 @endpush
