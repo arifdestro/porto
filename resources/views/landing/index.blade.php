@@ -519,7 +519,7 @@
                 <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
                     <i class="bi bi-x me-1"></i> Close
                 </button>
-                <a href="#" id="modalLiveLink" target="_blank" class="btn btn-primary-custom rounded-pill px-4">
+                <a id="modalLiveLink" href="" target="_blank" rel="noopener noreferrer" class="btn btn-primary-custom rounded-pill px-4">
                     <i class="bi bi-arrow-up-right me-1"></i> Visit Project
                 </a>
             </div>
@@ -597,17 +597,23 @@
         });
     });
 
-    // Smooth scroll
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    // Smooth scroll for in-page section links
+    document.querySelectorAll('a[href^="#"]:not([href="#"]):not([href="#!"]):not([data-bs-toggle]):not(#modalLiveLink)').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                const navCollapse = document.querySelector('.navbar-collapse');
-                if (navCollapse.classList.contains('show')) {
-                    new bootstrap.Collapse(navCollapse).hide();
+            const href = this.getAttribute('href');
+            if (!href || href === '#' || href === '#!') return;
+            try {
+                const target = document.querySelector(href);
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    const navCollapse = document.querySelector('.navbar-collapse');
+                    if (navCollapse && navCollapse.classList.contains('show')) {
+                        new bootstrap.Collapse(navCollapse).hide();
+                    }
                 }
+            } catch (err) {
+                // Ignore invalid CSS selector
             }
         });
     });
@@ -832,11 +838,16 @@
                 }
 
                 var liveBtn = document.getElementById('modalLiveLink');
-                if (link) {
-                    liveBtn.href          = link;
+                if (link && link.trim() !== '') {
+                    var formattedLink = link.trim();
+                    if (!formattedLink.match(/^https?:\/\//i) && !formattedLink.startsWith('/')) {
+                        formattedLink = 'https://' + formattedLink;
+                    }
+                    liveBtn.href          = formattedLink;
                     liveBtn.style.display = '';
                 } else {
                     liveBtn.style.display = 'none';
+                    liveBtn.removeAttribute('href');
                 }
 
                 portfolioModal.show();
